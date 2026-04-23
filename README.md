@@ -1,3 +1,9 @@
-This Repository is intended to be a collection of network detections organized with testing pcaps that were created by me. In most cases the pcaps are minimal but realistic enough to test the detections with included behaviors and Iocs mentioned in recent intelligence articles. Links to articles or PDF copies are included for refernce if I take time to add them. None of the articles are my work and are included, if included, for informational purposes only.
+#Network_Detections
 
-If you want to test these yourself you may want to try Suricata Bench for Suricata rules or zeek-try-cluster for Zeek scripts!
+This repository is a collection of network detections organized alongside test PCAPs that I created.
+
+In most cases, the PCAPs are minimal but realistic enough to exercise the included detections and the behaviors or IoCs described in recent threat intelligence reporting.
+
+Where useful, links to the original articles or local PDF copies may be included for reference. Those articles are not my work and, when included, are provided for informational purposes only.
+
+If you want to test these detections yourself, you may find tools like **Suricata Bench** useful for Suricata rules and **zeek-try-cluster** useful for Zeek scripts.
