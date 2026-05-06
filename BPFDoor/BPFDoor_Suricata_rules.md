@@ -15,7 +15,7 @@ alert icmp $HOME_NET any -> $EXTERNAL_NET any (msg:"ET MALWARE BPFDoor ICMP Echo
 ```
 
 
-#### 4. BPFDoor ICMP 0x7255 Magic-Byte Wake-Up Artifact ( Bonus rule written from a 2022 article)
+#### 5. BPFDoor ICMP 0x7255 Magic-Byte Wake-Up Artifact ( Bonus rule written from a 2022 article)
 ```suricata
 alert icmp any any -> any any (msg:"LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact"; itype:8; icode:0; content:"|72 55|"; depth:2; reference:url,https://www.elastic.co/security-labs/a-peek-behind-the-bpfdoor; sid:9002101; rev:1;)
 ```
