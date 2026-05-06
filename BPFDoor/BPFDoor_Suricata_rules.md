@@ -1,4 +1,4 @@
-#### 1 & 2. Visible command marker rule xbits
+#### 1 & 2. Visible command marker rule (2 rules using xbits)
 ```suricata
 alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg:"LOCAL BPFDoor inbound ICMP X: seed"; itype:8; content:"X:"; startswith; xbits:set,bpfdoor_icmp_x_seed,track ip_dst,expire 30; noalert; sid:99020011; rev:1;)
 
