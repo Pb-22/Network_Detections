@@ -8,10 +8,10 @@ alert icmp $HOME_NET any -> $EXTERNAL_NET any (msg:"LOCAL BPFDoor possible ICMP 
 
 #### 3 & 4. Hardcoded sequence 1234 rule inbound and outbound
 ```suricata
-alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg:"ET MALWARE BPFDoor ICMP Echo Reply (Inbound)"; itype:0; icmp_seq:1234; threshold: type threshold, track by_src, count 2, seconds 60; url,rapid7.com/blog/post/tr-new-whitepaper-stealthy-bpfdoor-variants/; sid:90020032; rev:2;)
+alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg:"LOCAL TEST BPFDoor ICMP Echo Request seq 1234 (Inbound)"; itype:8; icmp_seq:1234; threshold:type threshold, track by_dst, count 2, seconds 60; sid:99020031; rev:1;)
 ```
 ```suricata
-alert icmp $HOME_NET any -> $EXTERNAL_NET any (msg:"ET MALWARE BPFDoor ICMP Echo Request (Outbound)"; itype:8; icmp_seq:1234; threshold: type threshold, track by_dst, count 2, seconds 60; url,rapid7.com/blog/post/tr-new-whitepaper-stealthy-bpfdoor-variants/; sid:90020031; rev:2;)
+alert icmp $HOME_NET any -> $EXTERNAL_NET any (msg:"LOCAL TEST BPFDoor ICMP Echo Reply seq 1234 (Outbound)"; itype:0; icmp_seq:1234; threshold:type threshold, track by_src, count 2, seconds 60; sid:99020032; rev:1;)
 ```
 
 
