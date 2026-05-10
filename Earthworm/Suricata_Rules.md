@@ -42,12 +42,13 @@ alert tcp any any -> any any (msg:"EARTHWORM Setup Stage Control Sequence"; flow
 
 alert tcp any any -> any any (msg:"EARTHWORM setup stage continuation 01 03"; flow:established,to_client; flowbits:isset,ew.setup.confirmed; content:"|01 03|"; depth:2; dsize:6; flowbits:noalert; classtype:trojan-activity; sid:9906003; rev:4;)
 ```
-Group 2: Post-Setup Request Stage SOCKS Sequence
-Logic
+## Group 2: Post-Setup Request Stage SOCKS Sequence
 
-    01 04 sets the first request-stage bit
-    01 05 checks that bit and promotes the request-stage state
-    05 02 00 01 checks the promoted state and alerts
+### Logic
+
+- `01 04` sets the first request-stage bit
+- `01 05` checks that bit and promotes the request-stage state
+- `05 02` 00 01 checks the promoted state and alerts
 
 ```suricata
 
@@ -57,10 +58,8 @@ alert tcp any any -> any any (msg:"EARTHWORM request stage marker 01 05"; flow:e
 
 alert tcp any any -> any any (msg:"EARTHWORM Post Setup Request Stage SOCKS Sequence"; flow:established,to_client; flowbits:isset,ew.request.stage2; content:"|05 02 00 01|"; depth:4; dsize:4; classtype:trojan-activity; metadata:confidence medium, deployment Perimeter, affected_product Any; sid:9906006; rev:3;)
 ```
-Interpretation
-Type 1: Setup Stage Control Sequence
-
+### Interpretation
+#### Type 1: Setup Stage Control Sequence
 This is the high-confidence detection for the initial EarthWorm control handshake.
-Type 2: Post-Setup Request Stage SOCKS Sequence
-
+#### Type 2: Post-Setup Request Stage SOCKS Sequence
 This is the medium-confidence detection for actual SOCKS tunnel use after setup.
