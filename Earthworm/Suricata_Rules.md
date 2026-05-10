@@ -1,4 +1,4 @@
-# EarthWorm Suricata Rules
+# Earthworm Suricata Rules
 
 These rules are based on the current EarthWorm lab PCAPs and the UK National Cyber Security Centre (NCSC) *Pygmy Goat* malware analysis.
 
