@@ -41,7 +41,7 @@ alert tcp any any -> any any (msg:"EARTHWORM setup stage marker 01 01"; flow:est
 alert tcp any any -> any any (msg:"EARTHWORM Setup Stage Control Sequence"; flow:established,to_client; flowbits:isset,ew.setup.stage1; content:"|01 02|"; depth:2; dsize:6; flowbits:set,ew.setup.confirmed; classtype:trojan-activity; metadata:confidence high, deployment Perimeter, affected_product Any; sid:9906002; rev:4;)
 
 alert tcp any any -> any any (msg:"EARTHWORM setup stage continuation 01 03"; flow:established,to_client; flowbits:isset,ew.setup.confirmed; content:"|01 03|"; depth:2; dsize:6; flowbits:noalert; classtype:trojan-activity; sid:9906003; rev:4;)
-
+```
 Group 2: Post-Setup Request Stage SOCKS Sequence
 Logic
 
@@ -49,14 +49,14 @@ Logic
     01 05 checks that bit and promotes the request-stage state
     05 02 00 01 checks the promoted state and alerts
 
-Rules
+```suricata
 
 alert tcp any any -> any any (msg:"EARTHWORM request stage marker 01 04"; flow:established,to_server; content:"|01 04|"; depth:2; dsize:6; flowbits:set,ew.request.stage1; flowbits:noalert; classtype:trojan-activity; sid:9906004; rev:3;)
 
 alert tcp any any -> any any (msg:"EARTHWORM request stage marker 01 05"; flow:established,to_client; flowbits:isset,ew.request.stage1; content:"|01 05|"; depth:2; dsize:6; flowbits:set,ew.request.stage2; flowbits:noalert; classtype:trojan-activity; sid:9906005; rev:3;)
 
 alert tcp any any -> any any (msg:"EARTHWORM Post Setup Request Stage SOCKS Sequence"; flow:established,to_client; flowbits:isset,ew.request.stage2; content:"|05 02 00 01|"; depth:4; dsize:4; classtype:trojan-activity; metadata:confidence medium, deployment Perimeter, affected_product Any; sid:9906006; rev:3;)
-
+```
 Interpretation
 Type 1: Setup Stage Control Sequence
 
