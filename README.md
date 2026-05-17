@@ -7,3 +7,8 @@ In most cases, the PCAPs are minimal but realistic enough to exercise the includ
 Where useful, links to the original articles or local PDF copies may be included for reference. Those articles are not my work and, when included, are provided for informational purposes only.
 
 If you want to test these detections yourself, you may find tools like **Suricata Bench** useful for Suricata rules and **zeek-try-cluster** useful for Zeek scripts.
+
+Current EarthWorm-related directories:
+
+- `Earthworm/` — base reverse-SOCKS handshake and request-stage detection material
+- `Pygmy-Goat-Earthworm/` — pool-number follow-on with `ew-test-07` through `ew-test-10`
