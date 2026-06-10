@@ -10,7 +10,7 @@ alert tcp $HOME_NET any -> $HOME_NET any (msg:"ET HUNTING Possible Sliver Age an
 
 ## Notes
 
-1. Temporary SID `9003122` should be replaced before publication in a shared ruleset.
-2. Treat matches as hunting leads, not standalone proof of Sliver or malicious activity.
-3. age and minisign are legitimate tools; tune by known good hosts, ports, or internal update and release systems where needed.
-4. The rule intentionally uses HOME_NET to HOME_NET to focus on internal pivot and relay candidates.
+1. Temporary SID `9003122` .
+3. Treat matches as hunting leads, not standalone proof of Sliver or malicious activity.
+4. age and minisign are legitimate tools; tune by known good hosts, ports, or internal update and release systems where needed.
+5. The rule intentionally uses HOME_NET to HOME_NET to focus on internal pivot and relay candidates.
