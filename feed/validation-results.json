@@ -1,0 +1,44 @@
+{
+  "suricata_version": "8.0.4 RELEASE",
+  "rule_sha256": "3be82bb98efad952f0f9e48a466898f685dc8140b3434aaf3c1d2c1fd1488e08",
+  "runs": [
+    {
+      "name": "redflick",
+      "pcap_sha256": "b997871a4151cea1a0e8649955f94f1f36f63b3eb6c6e534db02c913f6a6bdc7",
+      "ok": true,
+      "run_id": "20261111192958-faef8841",
+      "alert_count": 1,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "1000201": 1
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "sliver",
+      "pcap_sha256": "03b08b6a2c616b2ab3a98ae0d46cccdc0779b9f752fd98aa9cd6e2486e42ebd9",
+      "ok": true,
+      "run_id": "20261111192959-d706cbaa",
+      "alert_count": 4,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "1000202": 4
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "cav3rn",
+      "pcap_sha256": "9626da5bcfdceb03fe2cd58b4f575da031cfe8120fc5be731df19cec30aa3d52",
+      "ok": true,
+      "run_id": "20261111192959-9f53ee21",
+      "alert_count": 3,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "1000203": 1,
+        "1000204": 1,
+        "1000205": 1
+      },
+      "diagnostics": "(none)"
+    }
+  ]
+}

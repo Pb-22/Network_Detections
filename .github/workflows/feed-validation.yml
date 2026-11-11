@@ -1,0 +1,33 @@
+name: Validate Suricata feed
+
+on:
+  push:
+    paths:
+      - "feed/**"
+      - "tools/build_suricata_feed.py"
+      - ".github/workflows/feed-validation.yml"
+  pull_request:
+    paths:
+      - "feed/**"
+      - "tools/build_suricata_feed.py"
+      - ".github/workflows/feed-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify deterministic feed build
+        run: python3 tools/build_suricata_feed.py --check
+      - name: Verify committed replay receipt
+        run: python3 tools/check_feed_acceptance.py
+      - name: Verify checksums
+        run: sha256sum --check feed/SHA256SUMS
+      - name: Validate with Suricata 8
+        run: docker run --rm -v "$PWD:/work:ro" jasonish/suricata:8.0.8 -T -S /work/feed/suricata/pb22.rules

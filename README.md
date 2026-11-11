@@ -16,3 +16,13 @@ Current EarthWorm-related directories:
 Additional detection packages:
 
 - [`RedFlick/`](RedFlick/) — DNSObserver HTTP C2 check in rule, synthetic PCAP, and visual explainer
+
+## Pb-22 Open Suricata feed
+
+The independent feed candidate is documented under [`feed/`](feed/). It currently contains five fixture backed rules, deterministic generation, checksums, Suricata 8 validation results, feed specific BSD-3-Clause licensing, and prepared SID allocation and OISF index submission material.
+
+The current `1000201-1000205` SIDs are temporary local use values. Do not deploy the candidate as a public source until sidallocation.org assigns the permanent block and the feed is renumbered.
+
+Candidate feed URL:
+
+https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules

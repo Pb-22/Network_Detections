@@ -1,0 +1,6 @@
+temporary_sid,rule,fixture,expected_alerts,status
+1000201,PB22 MALWARE RedFlick DNSObserver HTTP C2 Check-in,RedFlick/pcap/redflick-dnsobserver-http.pcap,1,validated temporary SID
+1000202,PB22 HUNTING Possible Sliver Age and Minisign Key Material in Internal TCP Stream,Sliver_Pivot-minisign_signature/scenario12_age_minisign.pcap,4,validated temporary SID
+1000203,PB22 MALWARE CAV3RN DNS Channel Selection,Cav3rn/pcap/Cav3rn.pcap,1,validated temporary SID
+1000204,PB22 MALWARE CAV3RN DNS Deployment ID Freshness,Cav3rn/pcap/Cav3rn.pcap,1,validated temporary SID
+1000205,PB22 MALWARE CAV3RN DNS Deployment ID Recovery,Cav3rn/pcap/Cav3rn.pcap,1,validated temporary SID

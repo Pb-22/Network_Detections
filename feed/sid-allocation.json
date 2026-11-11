@@ -1,0 +1,10 @@
+{
+  "feed": "pb22/open",
+  "status": "pre-registration",
+  "sid_policy": "temporary-local-use",
+  "sid_start": 1000201,
+  "sid_end": 1000205,
+  "rule_count": 5,
+  "replacement_required": true,
+  "registry": "https://sidallocation.org/"
+}

@@ -1,0 +1,14 @@
+# Submit only after sidallocation.org assigns the permanent block and the feed is renumbered.
+
+pb22/open:
+  summary: Pb-22 network detection rules
+  description: |
+    Community Suricata rules derived from packet based network detection
+    research published in the Pb-22 Network_Detections repository.
+  vendor: Pb-22
+  license: BSD-3-Clause
+  url: https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules
+  homepage: https://brimerica.com/
+  support-url: https://github.com/Pb-22/Network_Detections/issues
+  min-version: 8.0.0
+  checksum: false
