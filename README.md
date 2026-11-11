@@ -12,3 +12,7 @@ Current EarthWorm-related directories:
 
 - `Earthworm/` — base reverse-SOCKS handshake and request-stage detection material
 - `Pygmy-Goat-Earthworm/` — pool-number follow-on with `ew-test-07` through `ew-test-10`
+
+Additional detection packages:
+
+- [`RedFlick/Suricata/`](RedFlick/Suricata/) — DNSObserver HTTP C2 check in rule, synthetic PCAP, and visual explainer
