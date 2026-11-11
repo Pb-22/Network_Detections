@@ -19,8 +19,6 @@ alert http any any -> any any (msg:"LOCAL MALWARE RedFlick DNSObserver HTTP C2 C
 
 The directly loadable one line copy is [`redflick-dnsobserver.rules`](redflick-dnsobserver.rules).
 
-A copy ready Emerging Threats forum draft, including category, tags, evidence, PCAP matrix, coverage review, and validation boundaries, is available in [`EMERGING_THREATS_SIG_SUBMISSION.md`](EMERGING_THREATS_SIG_SUBMISSION.md).
-
 ## Test capture
 
 The paired 40 packet capture and its visual explainer are in the [`pcap` directory](../pcap/). It contains one intended positive and three single property negative controls. Suricata replay remains pending, so the documented outcomes are expected rather than observed.
