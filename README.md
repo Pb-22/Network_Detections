@@ -15,4 +15,4 @@ Current EarthWorm-related directories:
 
 Additional detection packages:
 
-- [`RedFlick/Suricata/`](RedFlick/Suricata/) — DNSObserver HTTP C2 check in rule, synthetic PCAP, and visual explainer
+- [`RedFlick/`](RedFlick/) — DNSObserver HTTP C2 check in rule, synthetic PCAP, and visual explainer
