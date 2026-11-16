@@ -1,0 +1,65 @@
+{
+  "engine": "Suricata 8.0.8 RELEASE",
+  "validated_at_utc": "2026-11-16T02:02:28.881449+00:00",
+  "rule_file": "redflick-dnsobserver.rules",
+  "rule_sha256": "22405762f2b5fbfc0882f25835f8202f38f357ec22471b8052b9899d041579c4",
+  "syntax_test": "pass",
+  "engine_analysis": "pass",
+  "rule_warnings": 0,
+  "replay_address_groups": {
+    "HOME_NET": "[192.0.2.10]",
+    "EXTERNAL_NET": "[198.51.100.20]"
+  },
+  "runs": [
+    {
+      "pcap": "../pcap/redflick-dnsobserver-http.pcap",
+      "observed_alerts_by_sid": {
+        "2072753": 1,
+        "2072754": 3
+      }
+    }
+  ],
+  "captures": [
+    {
+      "file": "../pcap/redflick-dnsobserver-http.pcap",
+      "packets": 40,
+      "sha256": "b997871a4151cea1a0e8649955f94f1f36f63b3eb6c6e534db02c913f6a6bdc7",
+      "malformed_or_truncated_frames": []
+    }
+  ],
+  "source": "https://rules.emergingthreats.net/open/suricata-7.0.3/rules/emerging-malware.rules",
+  "request_cases": [
+    {
+      "request_frame": 4,
+      "case": "complete check in",
+      "observed_alerts_by_sid": {
+        "2072753": 1,
+        "2072754": 1
+      }
+    },
+    {
+      "request_frame": 14,
+      "case": "different User-Agent",
+      "observed_alerts_by_sid": {
+        "2072753": 0,
+        "2072754": 0
+      }
+    },
+    {
+      "request_frame": 24,
+      "case": "different path",
+      "observed_alerts_by_sid": {
+        "2072753": 0,
+        "2072754": 1
+      }
+    },
+    {
+      "request_frame": 34,
+      "case": "short ui value",
+      "observed_alerts_by_sid": {
+        "2072753": 0,
+        "2072754": 1
+      }
+    }
+  ]
+}

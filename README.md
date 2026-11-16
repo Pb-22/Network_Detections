@@ -15,7 +15,9 @@ Current EarthWorm-related directories:
 
 Additional detection packages:
 
-- [`RedFlick/`](RedFlick/) — DNSObserver HTTP C2 check in rule, synthetic PCAP, and visual explainer
+- [`RedFlick/`](RedFlick/): published ET Open check in and User-Agent rules, synthetic PCAP, and visual explainer.
+- [`DCSync/`](DCSync/): DRSUAPI replication detection, authentic lab captures, and packet walkthrough.
+- [`Certipy/`](Certipy/): technique directory convention for certificate authentication detection packages.
 
 ## Pb-22 Open Suricata feed
 

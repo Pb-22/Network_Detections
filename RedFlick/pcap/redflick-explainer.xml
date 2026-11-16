@@ -66,33 +66,33 @@ body{margin:0;background:radial-gradient(circle at 14% 0,rgba(159,211,230,.13),t
     <a class="source-link" href="https://dslua.org/publications/spearphishing-via-fake-urc-2026-invitations-targets-ukrainian-csos/" target="_blank" rel="noopener noreferrer">Read the source article ↗</a>
   </header>
   <section class="overview">
-    <div class="panel"><span class="eyebrow">Why this capture exists</span><h2>DNSObserver HTTP registration capture</h2><p>One positive request and three single property negative controls, using synthetic endpoints.</p></div>
+    <div class="panel"><span class="eyebrow">Why this capture exists</span><h2>DNSObserver HTTP registration capture</h2><p>Four synthetic requests comparing the full check in signature with the broader User-Agent signature. Suricata 8.0.8 replay produced one alert from SID 2072753 and three from SID 2072754.</p></div>
     <div class="panel"><span class="eyebrow">Validation</span><div class="validation-grid"><div class="metric"><strong>40</strong><span>Packets</span></div><div class="metric"><strong>0</strong><span>TShark expert errors</span></div><div class="metric"><strong>3689</strong><span>PCAP bytes</span></div><div class="metric"><strong>4</strong><span>Test cases</span></div></div></div>
   </section>
   <section class="section"><div class="section-title"><div><span class="eyebrow">Conversation diagram</span><h2>Traffic story</h2></div></div><div class="traffic"><div class="endpoint"><span class="eyebrow">Source</span><strong>Synthetic Windows endpoint</strong><code>192.0.2.10:49152</code></div><div class="direction"><strong>HTTP over TCP</strong><div class="line"></div><span>4 modeled exchanges</span></div><div class="endpoint"><span class="eyebrow">Destination</span><strong>Synthetic HTTP service</strong><code>198.51.100.20:80</code></div></div></section>
-  <section class="section"><div class="section-title"><div><span class="eyebrow">Detection evidence</span><h2>Detection test plan</h2></div></div><div class="case-grid">
+  <section class="section"><div class="section-title"><div><span class="eyebrow">Detection evidence</span><h2>Observed rule results</h2></div></div><div class="case-grid">
 <article class="case" style="--role:#B1D631">
-  <div class="case-head"><div><span class="role">positive · Expected match</span><h3>GET registration request</h3></div><span class="packet">Packets 1–10</span></div>
-  <p>The request satisfies the complete intended conjunction: /dns/request?ui=, exact DNSObserver User-Agent and a 24-character Base64-compatible value.</p>
-  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378821.482</span><span>Expected: alert</span><span>Observed: not run</span></div>
+  <div class="case-head"><div><span class="role">Both rules match</span><h3>GET registration request</h3></div><span class="packet">Packets 1–10</span></div>
+  <p>The request matches /dns/request?ui=, the exact DNSObserver User-Agent and a 24 character value from the Base64 alphabet.</p>
+  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378821.482</span><span>2072753: 1 alert</span><span>2072754: 1 alert</span></div>
   <dl class="facts"><div class="fact"><dt>method</dt><dd>GET</dd></div><div class="fact"><dt>host</dt><dd>redflick-test.example</dd></div><div class="fact"><dt>uri</dt><dd>/dns/request?ui=TEFCXFdTLTAxNFxhbmFseXN0</dd></div><div class="fact"><dt>response status</dt><dd>200</dd></div><div class="fact"><dt>request timestamp</dt><dd>1794378821.481821</dd></div><div class="fact"><dt>user agent</dt><dd>DNSObserver</dd></div></dl>
 </article>
 <article class="case" style="--role:#D65E76">
-  <div class="case-head"><div><span class="role">negative control · Expected no match</span><h3>GET registration request</h3></div><span class="packet">Packets 11–20</span></div>
+  <div class="case-head"><div><span class="role">Full check in control</span><h3>GET registration request</h3></div><span class="packet">Packets 11–20</span></div>
   <p>The request retains the route and value but changes the User-Agent, so the conjunction is incomplete.</p>
-  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378822.783</span><span>Expected: no alert</span><span>Observed: not run</span></div>
+  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378822.783</span><span>2072753: 0 alerts</span><span>2072754: 0 alerts</span></div>
   <dl class="facts"><div class="fact"><dt>method</dt><dd>GET</dd></div><div class="fact"><dt>host</dt><dd>redflick-test.example</dd></div><div class="fact"><dt>uri</dt><dd>/dns/request?ui=TEFCXFdTLTAxNFxhbmFseXN0</dd></div><div class="fact"><dt>response status</dt><dd>200</dd></div><div class="fact"><dt>request timestamp</dt><dd>1794378822.782948</dd></div><div class="fact"><dt>user agent</dt><dd>WindowsUpdateClient/10.0</dd></div></dl>
 </article>
 <article class="case" style="--role:#D65E76">
-  <div class="case-head"><div><span class="role">negative control · Expected no match</span><h3>GET registration request</h3></div><span class="packet">Packets 21–30</span></div>
+  <div class="case-head"><div><span class="role">Full check in control</span><h3>GET registration request</h3></div><span class="packet">Packets 21–30</span></div>
   <p>The request retains DNSObserver and the value but changes the route, so the conjunction is incomplete.</p>
-  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378823.969</span><span>Expected: no alert</span><span>Observed: not run</span></div>
+  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378823.969</span><span>2072753: 0 alerts</span><span>2072754: 1 alert</span></div>
   <dl class="facts"><div class="fact"><dt>method</dt><dd>GET</dd></div><div class="fact"><dt>host</dt><dd>redflick-test.example</dd></div><div class="fact"><dt>uri</dt><dd>/dns/status?ui=TEFCXFdTLTAxNFxhbmFseXN0</dd></div><div class="fact"><dt>response status</dt><dd>200</dd></div><div class="fact"><dt>request timestamp</dt><dd>1794378823.968729</dd></div><div class="fact"><dt>user agent</dt><dd>DNSObserver</dd></div></dl>
 </article>
 <article class="case" style="--role:#D65E76">
-  <div class="case-head"><div><span class="role">negative control · Expected no match</span><h3>GET registration request</h3></div><span class="packet">Packets 31–40</span></div>
+  <div class="case-head"><div><span class="role">Full check in control</span><h3>GET registration request</h3></div><span class="packet">Packets 31–40</span></div>
   <p>The request retains the route and DNSObserver but the value is below the intended minimum length.</p>
-  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378825.179</span><span>Expected: no alert</span><span>Observed: not run</span></div>
+  <div class="case-foot"><span>client to synthetic server</span><span>PCAP time 1794378825.179</span><span>2072753: 0 alerts</span><span>2072754: 1 alert</span></div>
   <dl class="facts"><div class="fact"><dt>method</dt><dd>GET</dd></div><div class="fact"><dt>host</dt><dd>redflick-test.example</dd></div><div class="fact"><dt>uri</dt><dd>/dns/request?ui=short</dd></div><div class="fact"><dt>response status</dt><dd>200</dd></div><div class="fact"><dt>request timestamp</dt><dd>1794378825.179366</dd></div><div class="fact"><dt>user agent</dt><dd>DNSObserver</dd></div></dl>
 </article></div></section>
   <section class="section panel limitations"><span class="eyebrow">Scope notes</span><ul><li>The capture contains cleartext HTTP.</li><li>This is deterministic synthetic traffic.</li></ul></section>

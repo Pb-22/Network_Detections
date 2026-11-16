@@ -1,0 +1,56 @@
+{
+  "engine": "Suricata 8.0.8 RELEASE",
+  "validated_at_utc": "2026-11-16T02:02:28.881449+00:00",
+  "rule_file": "dcsync-dsgetncchanges.rules",
+  "rule_sha256": "3b7407dab3b221e71665df0372300e8c6089d6b624044bd698ecdebbbbafdc07",
+  "syntax_test": "pass",
+  "engine_analysis": "pass",
+  "rule_warnings": 0,
+  "replay_address_groups": {
+    "HOME_NET": "[10.77.10.10]",
+    "EXTERNAL_NET": "any"
+  },
+  "runs": [
+    {
+      "pcap": "../pcap/negative-drsuapi-cracknames.pcap",
+      "observed_alerts_by_sid": {}
+    },
+    {
+      "pcap": "../pcap/positive-drsuapi-dsgetncchanges.pcap",
+      "observed_alerts_by_sid": {
+        "1000206": 1
+      }
+    },
+    {
+      "pcap": "../pcap/dcsync-positive-negative-combined.pcap",
+      "observed_alerts_by_sid": {
+        "1000206": 1
+      }
+    }
+  ],
+  "captures": [
+    {
+      "file": "../pcap/negative-drsuapi-cracknames.pcap",
+      "packets": 48,
+      "sha256": "af5ca8116745426ef902a46cc6d731df74b1a0a93ef7f83fce05ae2c3c779f91",
+      "malformed_or_truncated_frames": []
+    },
+    {
+      "file": "../pcap/positive-drsuapi-dsgetncchanges.pcap",
+      "packets": 52,
+      "sha256": "ae7b56832368c52dcef32e560674deca1a27631228ca9a82690c54225f16049e",
+      "malformed_or_truncated_frames": []
+    },
+    {
+      "file": "../pcap/dcsync-positive-negative-combined.pcap",
+      "packets": 100,
+      "sha256": "56f38ccdea34b7881858405542e41bbd2c2b04819145d32d3246632d29a41d28",
+      "malformed_or_truncated_frames": []
+    }
+  ],
+  "tested_transport": "DRSUAPI over dynamic TCP RPC",
+  "inspection_engines": [
+    "dcerpc",
+    "smb"
+  ]
+}
