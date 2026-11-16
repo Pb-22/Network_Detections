@@ -3,3 +3,13 @@ __pycache__/
 .pytest_cache/
 /dcsync-output/
 /redflick-output/
+
+# Private authentication/runtime material and local replay output
+.env
+.env.*
+*.key
+*.pfx
+*.ccache
+/Certipy/PKINIT-U2U/private/
+/Certipy/PKINIT-U2U/replay-results/
+/Certipy/pkinit-u2u-replay*/

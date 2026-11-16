@@ -17,7 +17,7 @@ Additional detection packages:
 
 - [`RedFlick/`](RedFlick/): published ET Open check in and User-Agent rules, synthetic PCAP, and visual explainer.
 - [`DCSync/`](DCSync/): DRSUAPI replication detection, authentic lab captures, and packet walkthrough.
-- [`Certipy/`](Certipy/): technique directory convention for certificate authentication detection packages.
+- [`Certipy/`](Certipy/): certificate authentication detection packages, including [PKINIT-U2U](Certipy/PKINIT-U2U/) with tested Zeek source, authentic captures and 39 offline replay cases.
 
 ## Pb-22 Open Suricata feed
 

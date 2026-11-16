@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "detector": "Zeek script/pkinit-u2u.zeek",
+  "detector_sha256": "79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc",
+  "event_fixture": "Zeek script/event-regressions.zeek",
+  "event_fixture_sha256": "5bd60d038a18e9bcdfa699443746eeadf7455dd472d0560e5542282fd25dd046",
+  "cases": [
+    {
+      "case": "positive-pkinit-u2u",
+      "pcap": "pcap/positive-pkinit-u2u.pcap",
+      "sha256": "d33751275e970bc21ce1b2fffde772496ff9f4f4bf3a501879683ca5aaf52f35",
+      "expected": 1,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "negative-pkinit-no-hash",
+      "pcap": "pcap/negative-pkinit-no-hash.pcap",
+      "sha256": "cec6254368c3255ada2ed8501df4121b433733a7bbfcb053e7e88fe63887a238",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "negative-password-service",
+      "pcap": "pcap/negative-password-service.pcap",
+      "sha256": "e76a4d1cb51c9de601369cd781741ec7e12a0c54aecab12090aab8b5fff097fb",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "negative-pkinit-service",
+      "pcap": "pcap/negative-pkinit-service.pcap",
+      "sha256": "a8f0639e07256e0faaaf7494a2c8f47ca9f9a70937a341197aba43934855ef80",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "negative-password-self-u2u",
+      "pcap": "pcap/negative-password-self-u2u.pcap",
+      "sha256": "59212935ac9b8657c23d8ab4d1d5116033cd73c8f322692dc39c5d6cae8d222d",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "negative-cross-principal",
+      "pcap": "pcap/negative-cross-principal.pcap",
+      "sha256": "ecb5569d1315f0f3efc3c998d09b2a9d8748cc2c2840bf475f6ef50490511789",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "benign-rdp-nla-u2u",
+      "pcap": "pcap/benign-rdp-nla-u2u.pcap",
+      "sha256": "6395d9276d3209edcf080140ae6ef2e36b857425725f25afa3a226c2b055a721",
+      "expected": 0,
+      "classification": "authentic_lab_capture"
+    },
+    {
+      "case": "partial-view-positive",
+      "pcap": "pcap/partial-view-positive.pcap",
+      "sha256": "ac7cf077ef8b68738268c4e8c5f43c87ecfb6aaabbc51e3c0a09720f80647fbb",
+      "expected": 0,
+      "classification": "derived_partial_view_expected_false_negative"
+    }
+  ],
+  "event_cases": [
+    {
+      "case": "missing-request-certificate",
+      "expected": 0
+    },
+    {
+      "case": "missing-reply-certificate",
+      "expected": 0
+    },
+    {
+      "case": "wrong-as-client",
+      "expected": 0
+    },
+    {
+      "case": "wrong-as-realm",
+      "expected": 0
+    },
+    {
+      "case": "wrong-auth-ticket",
+      "expected": 0
+    },
+    {
+      "case": "missing-option",
+      "expected": 0
+    },
+    {
+      "case": "wrong-wire-bit",
+      "expected": 0
+    },
+    {
+      "case": "missing-additional",
+      "expected": 0
+    },
+    {
+      "case": "extra-additional",
+      "expected": 0
+    },
+    {
+      "case": "wrong-additional",
+      "expected": 0
+    },
+    {
+      "case": "wrong-target",
+      "expected": 0
+    },
+    {
+      "case": "wrong-target-realm",
+      "expected": 0
+    },
+    {
+      "case": "expired-pkinit",
+      "expected": 0
+    },
+    {
+      "case": "out-of-order",
+      "expected": 0
+    },
+    {
+      "case": "different-nonce-pipeline",
+      "expected": 0
+    },
+    {
+      "case": "same-nonce-different-ticket-pipeline",
+      "expected": 0
+    },
+    {
+      "case": "ordinary-request-before-candidate",
+      "expected": 0
+    },
+    {
+      "case": "error-before-reply",
+      "expected": 0
+    },
+    {
+      "case": "wrong-response-client",
+      "expected": 0
+    },
+    {
+      "case": "wrong-response-realm",
+      "expected": 0
+    },
+    {
+      "case": "wrong-response-service",
+      "expected": 0
+    },
+    {
+      "case": "stale-response",
+      "expected": 0
+    },
+    {
+      "case": "overlap-reply-new-candidate-leftover",
+      "expected": 0
+    },
+    {
+      "case": "overlap-error-new-candidate-leftover",
+      "expected": 0
+    },
+    {
+      "case": "as-pkinit-then-ordinary",
+      "expected": 0
+    },
+    {
+      "case": "as-ordinary-then-pkinit",
+      "expected": 0
+    },
+    {
+      "case": "baseline",
+      "expected": 1
+    },
+    {
+      "case": "case-normalization",
+      "expected": 1
+    },
+    {
+      "case": "optional-flags",
+      "expected": 1
+    },
+    {
+      "case": "duplicate-request",
+      "expected": 1
+    },
+    {
+      "case": "duplicate-reply",
+      "expected": 1
+    }
+  ]
+}
