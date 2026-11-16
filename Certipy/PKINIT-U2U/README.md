@@ -26,6 +26,7 @@ PKINIT-U2U/
   SHA256SUMS
   replay.py
   tests/test_replay.py
+  tests/test_notice_sub.py
   Zeek script/pkinit-u2u.zeek
   Zeek script/event-regressions.zeek
   pcap/*.pcap
@@ -52,7 +53,7 @@ Use a **new** output directory each time. For a non-PATH executable, pass `--zee
 python3 -B replay.py --case positive-pkinit-u2u --output ../pkinit-u2u-one-case
 ```
 
-`--case` is repeatable. Constructed cases additionally require `--events`. `python3 -B replay.py --help` lists the options. Paths containing spaces are passed as individual subprocess arguments, not through a shell.
+`--case` is repeatable. Constructed cases additionally require `--events`. `python3 -B replay.py --help` lists the options. Paths containing spaces are passed as individual subprocess arguments, not through a shell. The notice output regression uses a real Zeek executable found on PATH, or supplied through `ZEEK_BIN`; it is skipped when neither is available. Set `ZEEK_BIN=/path/to/zeek` when running the tests with a non-PATH installation.
 
 The runner verifies every PCAP, the detector and the constructed fixture against `cases.json` **before** engine execution. Each case gets an isolated log directory. It invokes `zeek -Cr` with JSON logging; `-C` disables checksum validation for offline captures, so this is not a test of live NIC checksum handling. A case passes only with:
 

@@ -62,7 +62,7 @@ Quarantine is separate from the timed tables. Quarantine state persists for the 
 
 ## Output and triage
 
-`pkinit_u2u.log` includes event time, TGS UID/connection, PKINIT UID/source, principal, realm, service, ticket digest, PKINIT age and outcome `self_targeted_u2u_ticket_issued`. The notice's supplementary text explicitly says passive traffic does not prove client-side hash extraction. The digest is a continuity identifier, **not an NT hash**.
+`pkinit_u2u.log` includes event time, TGS UID/connection, PKINIT UID/source, principal, realm, service, ticket digest, PKINIT age and outcome `self_targeted_u2u_ticket_issued`. The notice's `sub` field contains only the account in `principal@realm` form. The digest is a continuity identifier, **not an NT hash**.
 
 On a notice, correlate both UIDs, account/realm, certificate-authentication events, DC ticket events, certificate enrollment history, authorized client activity and endpoint evidence. Do not label a certificate owner malicious solely from this notice. Source addresses are context, not identity proof. The protocol chain may be produced by authorized assessment or other legitimate tooling.
 

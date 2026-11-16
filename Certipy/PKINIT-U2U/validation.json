@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
-  "status": "lab_validated_independently_reviewed",
-  "validated_at_utc": "2026-11-16T08:31:52.184220+00:00",
+  "status": "lab_validated_notice_format_revision",
+  "validated_at_utc": "2026-11-16T22:21:22.337564+00:00",
   "engine": {
     "name": "Zeek",
     "version": "9.0.0",
     "mode": "one offline process per case; -Cr; JSON logs; no site-policy or service changes"
   },
   "detector": "Zeek script/pkinit-u2u.zeek",
-  "detector_sha256": "79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc",
+  "detector_sha256": "335d787262ae1681e3cfd3469062c80a1bc400551e682600fd9258586fb8144f",
   "event_fixture": "Zeek script/event-regressions.zeek",
   "event_fixture_sha256": "5bd60d038a18e9bcdfa699443746eeadf7455dd472d0560e5542282fd25dd046",
   "runner": "replay.py",
   "runner_sha256": "d733b9bd4e8b8b44d88ff084db10d5e64bcd477b6680a46ece83851bf04da1c0",
   "cases_manifest": "cases.json",
-  "cases_manifest_sha256": "5e2e1cd1c734beed4e170057f2d280727d98b815a6519c720de9a427e42992f5",
+  "cases_manifest_sha256": "b8b7d295d93a0f81c2de681ce28bd9a1d703af87ce8b12e536d45952dc913cf5",
   "execution": {
     "packet_cases": 8,
     "authentic_capture_cases": 7,
@@ -22,7 +22,7 @@
     "constructed_event_cases": 31,
     "total_cases": 39,
     "passed": true,
-    "unit_tests": 16,
+    "unit_tests": 17,
     "unit_tests_exit_code": 0,
     "runner_exit_code": 0,
     "transferred_inputs_hash_verified_before_and_after": true
@@ -622,5 +622,12 @@
     "scope": "Exact detector successor and bounded offline lab paths; no production-capacity or credential-extraction certification",
     "detector_sha256": "79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc",
     "retained_review_report_sha256": "2d654025b19d708337215ad2f17e47df99251327d29537dac4886709b88bc359"
+  },
+  "notice_presentation_revision": {
+    "field": "sub",
+    "format": "principal@realm",
+    "matching_logic_unchanged": true,
+    "predecessor_independently_reviewed_detector_sha256": "79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc",
+    "literal_sub_regression": "real Zeek positive capture; account only; unchanged msg"
   }
 }

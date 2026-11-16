@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "detector": "Zeek script/pkinit-u2u.zeek",
-  "detector_sha256": "79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc",
+  "detector_sha256": "335d787262ae1681e3cfd3469062c80a1bc400551e682600fd9258586fb8144f",
   "event_fixture": "Zeek script/event-regressions.zeek",
   "event_fixture_sha256": "5bd60d038a18e9bcdfa699443746eeadf7455dd472d0560e5542282fd25dd046",
   "cases": [

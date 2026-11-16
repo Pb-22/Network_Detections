@@ -31,7 +31,7 @@ class RunnerTests(unittest.TestCase):
         config = self.runner.load_package(ROOT)
         self.assertEqual(len(config['cases']), 8)
         self.assertEqual(len(config['event_cases']), 31)
-        self.assertEqual(config['detector_sha256'], '79a4c0304656b9df0b9cdfd2a906b072ba52b70f1018b884d2502e1a39c4ecbc')
+        self.assertEqual(config['detector_sha256'], '335d787262ae1681e3cfd3469062c80a1bc400551e682600fd9258586fb8144f')
         self.assertEqual(config['cases'][-1]['classification'], 'derived_partial_view_expected_false_negative')
 
     def test_detector_mutation_rejected(self):
@@ -118,7 +118,7 @@ class RunnerTests(unittest.TestCase):
 class PackageIntegrityTests(unittest.TestCase):
     def test_exact_public_allowlist(self):
         expected = {'README.md', 'PACKET-GUIDE.md', 'DETECTOR-GUIDE.md', 'cases.json',
-                    'validation.json', 'SHA256SUMS', 'replay.py', 'tests/test_replay.py',
+                    'validation.json', 'SHA256SUMS', 'replay.py', 'tests/test_replay.py', 'tests/test_notice_sub.py',
                     'Zeek script/pkinit-u2u.zeek', 'Zeek script/event-regressions.zeek'}
         config = json.loads((ROOT/'cases.json').read_text())
         expected.update(case['pcap'] for case in config['cases'])

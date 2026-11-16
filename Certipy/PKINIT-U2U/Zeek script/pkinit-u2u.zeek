@@ -234,7 +234,7 @@ event krb_tgs_response(c: connection, msg: KRB::KDC_Response)
         $suppress_for=correlation_window,
         $msg=fmt("PKINIT followed by linked self-targeted U2U ticket issuance for %s@%s",
                  msg$client_name, msg$client_realm),
-        $sub="UnPAC-compatible sequence; passive traffic does not prove client-side hash extraction"]);
+        $sub=fmt("%s@%s", msg$client_name, msg$client_realm)]);
     }
 
 event krb_error(c: connection, msg: KRB::Error_Msg)
