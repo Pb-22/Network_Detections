@@ -4,7 +4,7 @@
   "sid_policy": "maintainer-authorized",
   "sid_start": 9955000,
   "sid_end": 9959999,
-  "rule_count": 4,
+  "rule_count": 5,
   "replacement_required": false,
   "registry": "https://sidallocation.org/",
   "authorization_url": "https://github.com/sidallocation/sidallocation.org/issues/55#issuecomment-6959202111",

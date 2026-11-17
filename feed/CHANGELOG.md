@@ -1,5 +1,12 @@
 # Feed changelog
 
+## 2026-11-17 — WMI command-output encoding
+
+- Added standalone SID `9955009` revision 12 and included it in the five-rule subscription feed.
+- Added the WMI detection guide, sixteen separate captures, combined replay capture, case map, and file hashes.
+- Replayed the full feed against the retained RedFlick, Sliver, and CAV3RN fixtures and the authentic and combined WMI captures.
+- Preserved the observed wrong-interface result in the WMI comparison table. BPFDoor `9955008` remains disabled and outside the aggregate.
+
 ## 2026-11-17 — maintainer-authorized SID conversion
 
 - Converted the remaining independent repository rules to SIDs `9955000-9955007`; retained disabled-by-default BPFDoor SID `9955008`.

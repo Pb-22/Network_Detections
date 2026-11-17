@@ -1,7 +1,7 @@
 {
   "suricata_version": "8.0.8 RELEASE",
-  "validated_at_utc": "2026-11-17T22:34:33.289738+00:00",
-  "rule_sha256": "b7bab33e0cc53b9fcb9ae4c50a8ba5d9265f26e76d8f593f2e2917c009ecce27",
+  "validated_at_utc": "2026-11-17T23:16:14.873429+00:00",
+  "rule_sha256": "405a39d071ae7b6cbb80125a3ccf989c68479bc2cc6001d219c588776e092a72",
   "replay_address_groups": {
     "HOME_NET": "any",
     "EXTERNAL_NET": "any"
@@ -11,9 +11,10 @@
       "name": "redflick",
       "pcap": "RedFlick/pcap/redflick-dnsobserver-http.pcap",
       "pcap_sha256": "b997871a4151cea1a0e8649955f94f1f36f63b3eb6c6e534db02c913f6a6bdc7",
+      "runmode": "single",
       "ok": true,
       "alert_count": 0,
-      "rules_enabled_count": 4,
+      "rules_enabled_count": 5,
       "sid_counts": {},
       "diagnostics": "(none)"
     },
@@ -21,9 +22,10 @@
       "name": "sliver",
       "pcap": "Sliver_Pivot-minisign_signature/scenario12_age_minisign.pcap",
       "pcap_sha256": "03b08b6a2c616b2ab3a98ae0d46cccdc0779b9f752fd98aa9cd6e2486e42ebd9",
+      "runmode": "single",
       "ok": true,
       "alert_count": 4,
-      "rules_enabled_count": 4,
+      "rules_enabled_count": 5,
       "sid_counts": {
         "9955000": 4
       },
@@ -33,13 +35,53 @@
       "name": "cav3rn",
       "pcap": "Cav3rn/pcap/Cav3rn.pcap",
       "pcap_sha256": "9626da5bcfdceb03fe2cd58b4f575da031cfe8120fc5be731df19cec30aa3d52",
+      "runmode": "single",
       "ok": true,
       "alert_count": 3,
-      "rules_enabled_count": 4,
+      "rules_enabled_count": 5,
       "sid_counts": {
         "9955001": 1,
         "9955002": 1,
         "9955003": 1
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-authentic",
+      "pcap": "WMI/pcap/separate/authentic-execution.pcap",
+      "pcap_sha256": "7b2a63fee5df17fbe92f7a2e510f03f7140bfa7172fbd455bc85f355bb1aa56f",
+      "runmode": "single",
+      "ok": true,
+      "alert_count": 1,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "9955009": 1
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-combined",
+      "pcap": "WMI/pcap/wmi-command-output-encoding-combined.pcap",
+      "pcap_sha256": "87f50d3bc5294b1f064d3f3061305648e6a8096c93569f1bb017275013317fab",
+      "runmode": "single",
+      "ok": true,
+      "alert_count": 7,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "9955009": 7
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-combined-autofp",
+      "pcap": "WMI/pcap/wmi-command-output-encoding-combined.pcap",
+      "pcap_sha256": "87f50d3bc5294b1f064d3f3061305648e6a8096c93569f1bb017275013317fab",
+      "runmode": "autofp",
+      "ok": true,
+      "alert_count": 7,
+      "rules_enabled_count": 5,
+      "sid_counts": {
+        "9955009": 7
       },
       "diagnostics": "(none)"
     }

@@ -1,0 +1,1706 @@
+{
+  "engine": "Suricata 8.0.8 RELEASE",
+  "rule_file": "wmi-command-output-encoding.rules",
+  "sid": 9955009,
+  "revision": 12,
+  "rule_sha256": "4863f0c2068f667af275a5c483a5c251d58191283c678d5414e9bf1ae1ecec23",
+  "syntax_test": "pass",
+  "engine_analysis": "pass",
+  "rule_warnings": 0,
+  "inspection": "reassembled TCP stream",
+  "fast_pattern_bytes": 88,
+  "content_checks": 6,
+  "pcre_checks": 2,
+  "replay_address_groups": {
+    "HOME_NET": "10.77.0.0/16"
+  },
+  "matrix_cases": 16,
+  "positive_cases": 6,
+  "negative_cases": 10,
+  "intended_outcomes_matched": 15,
+  "interface_control": {
+    "case": "wrong-interface",
+    "type": "N",
+    "intended_alerts": 0,
+    "observed_alerts": 1
+  },
+  "cases": [
+    {
+      "case": "authentic-execution",
+      "type": "P",
+      "pcap": "separate/authentic-execution.pcap",
+      "sha256": "7b2a63fee5df17fbe92f7a2e510f03f7140bfa7172fbd455bc85f355bb1aa56f",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 4
+      }
+    },
+    {
+      "case": "native-sealed-control",
+      "type": "N",
+      "pcap": "separate/native-sealed-control.pcap",
+      "sha256": "c6e9271bd2f58afd143d7aea73269791978a84e3229b3b76518c7e603e0a2afe",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 0,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "same-client-readonly",
+      "type": "N",
+      "pcap": "separate/same-client-readonly.pcap",
+      "sha256": "6fd7e1fbd952598a72f542575a39a68241d65b46ce8aa5b493cdfa7d1be984ba",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 0,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "command-only-excerpt",
+      "type": "N",
+      "pcap": "separate/command-only-excerpt.pcap",
+      "sha256": "43bf6d586396016669afe08a8304e5800445ed6713a6c1099931825bb1e86474",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 2
+      }
+    },
+    {
+      "case": "segmented-512",
+      "type": "P",
+      "pcap": "separate/segmented-512.pcap",
+      "sha256": "3d3a16850346dd67fe1c216933149fc15e8fa782a49192e3136333fec52b710a",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 4
+      }
+    },
+    {
+      "case": "segmented-96",
+      "type": "P",
+      "pcap": "separate/segmented-96.pcap",
+      "sha256": "43a2c9165c085cd001520df8d251522f1b89cdaff34595c6abd40ac55717b1df",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "segmented-17",
+      "type": "P",
+      "pcap": "separate/segmented-17.pcap",
+      "sha256": "59402f5accda76ac76a1dc2d9bffdc283875fb48ea73d031251dc2a8a5dba06f",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "wrong-interface",
+      "type": "N",
+      "pcap": "separate/wrong-interface.pcap",
+      "sha256": "64c0facbfade27ea436e042ae5c80c05879c2e1fc7ea3990cc983419f21749fa",
+      "intended_alerts": 0,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 4
+      }
+    },
+    {
+      "case": "wrong-opnum",
+      "type": "N",
+      "pcap": "separate/wrong-opnum.pcap",
+      "sha256": "b0126d32ff9ff9249c5057f26f50b6726621122a8e7e35df97cdbe5f1148088f",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 4
+      }
+    },
+    {
+      "case": "wrong-class",
+      "type": "N",
+      "pcap": "separate/wrong-class.pcap",
+      "sha256": "37b13872b1cf0c3f85a9f4702e889d2a6809eeb1ddb6a79d498e2031d4e88125",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 0,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "wrong-method",
+      "type": "N",
+      "pcap": "separate/wrong-method.pcap",
+      "sha256": "a596b8b4f0e59beef46837942cad66307a259f2c4561e585dce725a42696a4cf",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 0,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "wrong-encoding",
+      "type": "N",
+      "pcap": "separate/wrong-encoding.pcap",
+      "sha256": "81f827d948fac9585a5faec276550f9092b416f5e1522f523bb97133a57b2965",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 4
+      }
+    },
+    {
+      "case": "case-variation",
+      "type": "P",
+      "pcap": "separate/case-variation.pcap",
+      "sha256": "04cfc07839b2a2a1b9276dfc777a1d59648c8b202647b4673a241c840186b426",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 0,
+        "PAW_3300308": 0
+      }
+    },
+    {
+      "case": "coalesced-real-requests",
+      "type": "P",
+      "pcap": "separate/coalesced-real-requests.pcap",
+      "sha256": "a165763c5c2fd594ae931b036d9dede67b2e103a9cb8394b6984c5153b918969",
+      "intended_alerts": 1,
+      "observed_alerts": 1,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 1
+      }
+    },
+    {
+      "case": "coalesced-cross-request",
+      "type": "N",
+      "pcap": "separate/coalesced-cross-request.pcap",
+      "sha256": "0c8488a055400fb6f17d17428dd9da0c4bae64f94a184acf59eda0a179eb3242",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 1
+      }
+    },
+    {
+      "case": "commented-encoder",
+      "type": "N",
+      "pcap": "separate/commented-encoder.pcap",
+      "sha256": "2dd03b0801ff0634aa0ac7f4304a7019fcf0cf2a9c957bc48d0e6c043957bdbf",
+      "intended_alerts": 0,
+      "observed_alerts": 0,
+      "comparison_alerts": {
+        "PT_10001999": 1,
+        "PAW_3300308": 1
+      }
+    }
+  ],
+  "combined_capture": {
+    "file": "../pcap/wmi-command-output-encoding-combined.pcap",
+    "sha256": "87f50d3bc5294b1f064d3f3061305648e6a8096c93569f1bb017275013317fab",
+    "packets": 11055
+  },
+  "runs": [
+    {
+      "name": "separate-authentic-execution",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 4,
+        "9955009": 1
+      },
+      "per_case": {
+        "authentic-execution": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 160
+        }
+      ]
+    },
+    {
+      "name": "separate-native-sealed-control",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {},
+      "per_case": {
+        "native-sealed-control": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": []
+    },
+    {
+      "name": "separate-same-client-readonly",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {},
+      "per_case": {
+        "same-client-readonly": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": []
+    },
+    {
+      "name": "separate-command-only-excerpt",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 2
+      },
+      "per_case": {
+        "command-only-excerpt": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 2,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "command-only-excerpt",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 111
+        }
+      ]
+    },
+    {
+      "name": "separate-segmented-512",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 4,
+        "9955009": 1
+      },
+      "per_case": {
+        "segmented-512": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "segmented-512",
+          "sid": 10001999,
+          "packet": 146
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 146
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 156
+        },
+        {
+          "case": "segmented-512",
+          "sid": 9955009,
+          "packet": 165
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 166
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 268
+        }
+      ]
+    },
+    {
+      "name": "separate-segmented-96",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "9955009": 1
+      },
+      "per_case": {
+        "segmented-96": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "segmented-96",
+          "sid": 10001999,
+          "packet": 519
+        },
+        {
+          "case": "segmented-96",
+          "sid": 9955009,
+          "packet": 519
+        }
+      ]
+    },
+    {
+      "name": "separate-segmented-17",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "9955009": 1
+      },
+      "per_case": {
+        "segmented-17": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "segmented-17",
+          "sid": 10001999,
+          "packet": 2515
+        },
+        {
+          "case": "segmented-17",
+          "sid": 9955009,
+          "packet": 2515
+        }
+      ]
+    },
+    {
+      "name": "separate-wrong-interface",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 4,
+        "9955009": 1
+      },
+      "per_case": {
+        "wrong-interface": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "wrong-interface",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 160
+        }
+      ]
+    },
+    {
+      "name": "separate-wrong-opnum",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 4
+      },
+      "per_case": {
+        "wrong-opnum": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "wrong-opnum",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 160
+        }
+      ]
+    },
+    {
+      "name": "separate-wrong-class",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {},
+      "per_case": {
+        "wrong-class": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": []
+    },
+    {
+      "name": "separate-wrong-method",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {},
+      "per_case": {
+        "wrong-method": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": []
+    },
+    {
+      "name": "separate-wrong-encoding",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 4
+      },
+      "per_case": {
+        "wrong-encoding": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "wrong-encoding",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 160
+        }
+      ]
+    },
+    {
+      "name": "separate-case-variation",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "9955009": 1
+      },
+      "per_case": {
+        "case-variation": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "case-variation",
+          "sid": 9955009,
+          "packet": 115
+        }
+      ]
+    },
+    {
+      "name": "separate-coalesced-real-requests",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 1,
+        "9955009": 1
+      },
+      "per_case": {
+        "coalesced-real-requests": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 1,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "coalesced-real-requests",
+          "sid": 10001999,
+          "packet": 4
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 3300308,
+          "packet": 4
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 9955009,
+          "packet": null
+        }
+      ]
+    },
+    {
+      "name": "separate-coalesced-cross-request",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 1
+      },
+      "per_case": {
+        "coalesced-cross-request": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "coalesced-cross-request",
+          "sid": 10001999,
+          "packet": 4
+        },
+        {
+          "case": "coalesced-cross-request",
+          "sid": 3300308,
+          "packet": 4
+        }
+      ]
+    },
+    {
+      "name": "separate-commented-encoder",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 1,
+        "3300308": 1
+      },
+      "per_case": {
+        "commented-encoder": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "commented-encoder",
+          "sid": 10001999,
+          "packet": 4
+        },
+        {
+          "case": "commented-encoder",
+          "sid": 3300308,
+          "packet": 4
+        }
+      ]
+    },
+    {
+      "name": "combined-standalone-single",
+      "mode": "single",
+      "rules": "standalone",
+      "rc": 0,
+      "alerts_by_sid": {
+        "9955009": 7
+      },
+      "per_case": {
+        "authentic-execution": {
+          "9955009": 1
+        },
+        "native-sealed-control": {
+          "9955009": 0
+        },
+        "same-client-readonly": {
+          "9955009": 0
+        },
+        "command-only-excerpt": {
+          "9955009": 0
+        },
+        "segmented-512": {
+          "9955009": 1
+        },
+        "segmented-96": {
+          "9955009": 1
+        },
+        "segmented-17": {
+          "9955009": 1
+        },
+        "wrong-interface": {
+          "9955009": 1
+        },
+        "wrong-opnum": {
+          "9955009": 0
+        },
+        "wrong-class": {
+          "9955009": 0
+        },
+        "wrong-method": {
+          "9955009": 0
+        },
+        "wrong-encoding": {
+          "9955009": 0
+        },
+        "case-variation": {
+          "9955009": 1
+        },
+        "coalesced-real-requests": {
+          "9955009": 1
+        },
+        "coalesced-cross-request": {
+          "9955009": 0
+        },
+        "commented-encoder": {
+          "9955009": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "segmented-512",
+          "sid": 9955009,
+          "packet": 738
+        },
+        {
+          "case": "segmented-96",
+          "sid": 9955009,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-17",
+          "sid": 9955009,
+          "packet": 4909
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 9955009,
+          "packet": 9904
+        },
+        {
+          "case": "case-variation",
+          "sid": 9955009,
+          "packet": 10944
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 9955009,
+          "packet": 11043
+        }
+      ]
+    },
+    {
+      "name": "combined-comparison-single",
+      "mode": "single",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 11,
+        "3300308": 25,
+        "9955009": 7
+      },
+      "per_case": {
+        "authentic-execution": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "native-sealed-control": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "same-client-readonly": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "command-only-excerpt": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 2,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "segmented-512": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "segmented-96": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "segmented-17": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "wrong-interface": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "wrong-opnum": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-class": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-method": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-encoding": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "case-variation": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "coalesced-real-requests": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "coalesced-cross-request": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "commented-encoder": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 160
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 10001999,
+          "packet": 562
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 562
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 567
+        },
+        {
+          "case": "segmented-512",
+          "sid": 10001999,
+          "packet": 719
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 719
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 729
+        },
+        {
+          "case": "segmented-512",
+          "sid": 9955009,
+          "packet": 738
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 739
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 841
+        },
+        {
+          "case": "segmented-96",
+          "sid": 10001999,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-96",
+          "sid": 9955009,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-17",
+          "sid": 10001999,
+          "packet": 4909
+        },
+        {
+          "case": "segmented-17",
+          "sid": 9955009,
+          "packet": 4909
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 10001999,
+          "packet": 9895
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9895
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9900
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 9955009,
+          "packet": 9904
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9905
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9949
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 10001999,
+          "packet": 10103
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10103
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10108
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10113
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10157
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 10001999,
+          "packet": 10727
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10727
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10732
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10737
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10781
+        },
+        {
+          "case": "case-variation",
+          "sid": 9955009,
+          "packet": 10944
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 10001999,
+          "packet": 11041
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 3300308,
+          "packet": 11041
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 9955009,
+          "packet": 11043
+        },
+        {
+          "case": "coalesced-cross-request",
+          "sid": 10001999,
+          "packet": 11047
+        },
+        {
+          "case": "coalesced-cross-request",
+          "sid": 3300308,
+          "packet": 11047
+        },
+        {
+          "case": "commented-encoder",
+          "sid": 10001999,
+          "packet": 11053
+        },
+        {
+          "case": "commented-encoder",
+          "sid": 3300308,
+          "packet": 11053
+        }
+      ]
+    },
+    {
+      "name": "authentic-standalone-single",
+      "mode": "single",
+      "rules": "standalone",
+      "rc": 0,
+      "alerts_by_sid": {
+        "9955009": 1
+      },
+      "per_case": {
+        "authentic-execution": {
+          "9955009": 1
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        }
+      ]
+    },
+    {
+      "name": "combined-standalone-autofp",
+      "mode": "autofp",
+      "rules": "standalone",
+      "rc": 0,
+      "alerts_by_sid": {
+        "9955009": 7
+      },
+      "per_case": {
+        "authentic-execution": {
+          "9955009": 1
+        },
+        "native-sealed-control": {
+          "9955009": 0
+        },
+        "same-client-readonly": {
+          "9955009": 0
+        },
+        "command-only-excerpt": {
+          "9955009": 0
+        },
+        "segmented-512": {
+          "9955009": 1
+        },
+        "segmented-96": {
+          "9955009": 1
+        },
+        "segmented-17": {
+          "9955009": 1
+        },
+        "wrong-interface": {
+          "9955009": 1
+        },
+        "wrong-opnum": {
+          "9955009": 0
+        },
+        "wrong-class": {
+          "9955009": 0
+        },
+        "wrong-method": {
+          "9955009": 0
+        },
+        "wrong-encoding": {
+          "9955009": 0
+        },
+        "case-variation": {
+          "9955009": 1
+        },
+        "coalesced-real-requests": {
+          "9955009": 1
+        },
+        "coalesced-cross-request": {
+          "9955009": 0
+        },
+        "commented-encoder": {
+          "9955009": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "segmented-512",
+          "sid": 9955009,
+          "packet": 738
+        },
+        {
+          "case": "segmented-96",
+          "sid": 9955009,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-17",
+          "sid": 9955009,
+          "packet": 4909
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 9955009,
+          "packet": 9904
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 9955009,
+          "packet": 11043
+        },
+        {
+          "case": "case-variation",
+          "sid": 9955009,
+          "packet": 10944
+        }
+      ]
+    },
+    {
+      "name": "combined-comparison-autofp",
+      "mode": "autofp",
+      "rules": "comparison",
+      "rc": 0,
+      "alerts_by_sid": {
+        "10001999": 11,
+        "3300308": 25,
+        "9955009": 7
+      },
+      "per_case": {
+        "authentic-execution": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "native-sealed-control": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "same-client-readonly": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "command-only-excerpt": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 2,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "segmented-512": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "segmented-96": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "segmented-17": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "wrong-interface": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "wrong-opnum": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-class": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-method": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "wrong-encoding": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 4,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "case-variation": {
+          "10001999": 0,
+          "10002000": 0,
+          "3300308": 0,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "coalesced-real-requests": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 1,
+          "1000208": 0
+        },
+        "coalesced-cross-request": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        },
+        "commented-encoder": {
+          "10001999": 1,
+          "10002000": 0,
+          "3300308": 1,
+          "9955009": 0,
+          "1000208": 0
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 10001999,
+          "packet": 106
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 106
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 10001999,
+          "packet": 562
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 562
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 111
+        },
+        {
+          "case": "command-only-excerpt",
+          "sid": 3300308,
+          "packet": 567
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 116
+        },
+        {
+          "case": "authentic-execution",
+          "sid": 3300308,
+          "packet": 160
+        },
+        {
+          "case": "segmented-512",
+          "sid": 10001999,
+          "packet": 719
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 719
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 729
+        },
+        {
+          "case": "segmented-512",
+          "sid": 9955009,
+          "packet": 738
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 739
+        },
+        {
+          "case": "segmented-96",
+          "sid": 10001999,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-96",
+          "sid": 9955009,
+          "packet": 1464
+        },
+        {
+          "case": "segmented-512",
+          "sid": 3300308,
+          "packet": 841
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 10001999,
+          "packet": 9895
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9895
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9900
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 9955009,
+          "packet": 9904
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9905
+        },
+        {
+          "case": "wrong-interface",
+          "sid": 3300308,
+          "packet": 9949
+        },
+        {
+          "case": "segmented-17",
+          "sid": 10001999,
+          "packet": 4909
+        },
+        {
+          "case": "segmented-17",
+          "sid": 9955009,
+          "packet": 4909
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 10001999,
+          "packet": 10727
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10727
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10732
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10737
+        },
+        {
+          "case": "wrong-encoding",
+          "sid": 3300308,
+          "packet": 10781
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 10001999,
+          "packet": 11041
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 3300308,
+          "packet": 11041
+        },
+        {
+          "case": "coalesced-cross-request",
+          "sid": 10001999,
+          "packet": 11047
+        },
+        {
+          "case": "coalesced-cross-request",
+          "sid": 3300308,
+          "packet": 11047
+        },
+        {
+          "case": "coalesced-real-requests",
+          "sid": 9955009,
+          "packet": 11043
+        },
+        {
+          "case": "commented-encoder",
+          "sid": 10001999,
+          "packet": 11053
+        },
+        {
+          "case": "commented-encoder",
+          "sid": 3300308,
+          "packet": 11053
+        },
+        {
+          "case": "case-variation",
+          "sid": 9955009,
+          "packet": 10944
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 10001999,
+          "packet": 10103
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10103
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10108
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10113
+        },
+        {
+          "case": "wrong-opnum",
+          "sid": 3300308,
+          "packet": 10157
+        }
+      ]
+    },
+    {
+      "name": "authentic-standalone-autofp",
+      "mode": "autofp",
+      "rules": "standalone",
+      "rc": 0,
+      "alerts_by_sid": {
+        "9955009": 1
+      },
+      "per_case": {
+        "authentic-execution": {
+          "9955009": 1
+        }
+      },
+      "differences": [],
+      "alerts": [
+        {
+          "case": "authentic-execution",
+          "sid": 9955009,
+          "packet": 115
+        }
+      ]
+    }
+  ]
+}
