@@ -1,0 +1,2 @@
+# Disabled by default by maintainer choice; enable only by explicit local policy.
+# alert icmp any any -> any any (msg:"LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact"; itype:8; icode:0; content:"|72 55|"; depth:2; reference:url,https://www.elastic.co/security-labs/a-peek-behind-the-bpfdoor; sid:9955008; rev:1;)

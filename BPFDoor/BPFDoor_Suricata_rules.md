@@ -16,7 +16,9 @@ alert icmp $HOME_NET any -> any any (msg:"ET MALWARE BPFDoor ICMP Echo Reply"; i
 ```
 ---------
 
-#### 5. BPFDoor ICMP 0x7255 Magic-Byte Wake-Up Artifact ( Bonus rule written from a 2022 article)
+#### 5. BPFDoor ICMP 0x7255 Magic-Byte Wake-Up Artifact ( Bonus rule written from a 2022 article) - Disabled by default
+
+SID `9955008` is disabled by default. The [loadable rule file](Suricata/bpfdoor-icmp-magic.rules) and example below both keep the rule commented out. The previous local SID was `9002101`.
 ```suricata
-alert icmp any any -> any any (msg:"LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact"; itype:8; icode:0; content:"|72 55|"; depth:2; reference:url,https://www.elastic.co/security-labs/a-peek-behind-the-bpfdoor; sid:9002101; rev:1;)
+# alert icmp any any -> any any (msg:"LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact"; itype:8; icode:0; content:"|72 55|"; depth:2; reference:url,https://www.elastic.co/security-labs/a-peek-behind-the-bpfdoor; sid:9955008; rev:1;)
 ```
