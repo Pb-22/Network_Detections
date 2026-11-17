@@ -21,9 +21,9 @@ Additional detection packages:
 
 ## Pb-22 Open Suricata feed
 
-The independent feed candidate is documented under [`feed/`](feed/). It currently contains five fixture backed rules, deterministic generation, checksums, Suricata 8 validation results, feed specific BSD-3-Clause licensing, and prepared SID allocation and OISF index submission material.
+The independent feed is documented under [`feed/`](feed/). It contains four fixture-backed rules, deterministic generation, checksums, Suricata 8 validation results, feed-specific BSD-3-Clause licensing, and SID allocation and OISF index submission material.
 
-The current `1000201-1000205` SIDs are temporary local use values. Do not deploy the candidate as a public source until sidallocation.org assigns the permanent block and the feed is renumbered.
+The downloadable feed uses SIDs `9955000-9955003` within the maintainer-authorized `9955000-9959999` range. The [repository-wide SID map](feed/sid-map.csv) also lists DCSync and the Lua-backed EarthWorm rules in their individual directories, plus disabled-by-default BPFDoor SID `9955008`. These additional rules are not automatically included in the aggregate feed. RedFlick is supplied by ET Open and is excluded from this independent feed. Registry PR review and OISF index listing are separate from permission to use the range.
 
 Candidate feed URL:
 

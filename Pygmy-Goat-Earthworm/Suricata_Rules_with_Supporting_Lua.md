@@ -11,11 +11,11 @@ These notes capture the validated pool-aware Suricata path for the Pygmy Goat / 
 ## Validated Suricata rules
 
 ```suricata
-alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Request Pool Store"; flow:established,to_server; dsize:6; content:"|01 04|"; startswith; byte_test:4,>,0,2; byte_extract:4,2,ew_req_pool; lua:lua/earthworm_pool_store.lua; xbits:set,ET.earthworm.request.pool.stage1,track ip_pair,expire 300; noalert; classtype:trojan-activity; sid:9000031; rev:3;)
+alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Request Pool Store"; flow:established,to_server; dsize:6; content:"|01 04|"; startswith; byte_test:4,>,0,2; byte_extract:4,2,ew_req_pool; lua:lua/earthworm_pool_store.lua; xbits:set,ET.earthworm.request.pool.stage1,track ip_pair,expire 300; noalert; classtype:trojan-activity; sid:9955005; rev:3;)
 
-alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Response Pool Match"; flow:established,to_client; xbits:isset,ET.earthworm.request.pool.stage1,track ip_pair; dsize:6; content:"|01 05|"; startswith; byte_test:4,>,0,2; byte_extract:4,2,ew_resp_pool; lua:lua/earthworm_pool_compare.lua; xbits:set,ET.earthworm.request.pool.stage2,track ip_pair,expire 300; noalert; classtype:trojan-activity; sid:9000032; rev:3;)
+alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Response Pool Match"; flow:established,to_client; xbits:isset,ET.earthworm.request.pool.stage1,track ip_pair; dsize:6; content:"|01 05|"; startswith; byte_test:4,>,0,2; byte_extract:4,2,ew_resp_pool; lua:lua/earthworm_pool_compare.lua; xbits:set,ET.earthworm.request.pool.stage2,track ip_pair,expire 300; noalert; classtype:trojan-activity; sid:9955006; rev:3;)
 
-alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Proxy Tunnel Post Setup Request Pool Match"; flow:established,to_client; xbits:isset,ET.earthworm.request.pool.stage2,track ip_pair; dsize:4; content:"|05 02 00 01|"; fast_pattern; classtype:trojan-activity; sid:9000033; rev:1;)
+alert tcp-pkt any any -> any any (msg:"ET MALWARE EARTHWORM SOCKS Proxy Tunnel Post Setup Request Pool Match"; flow:established,to_client; xbits:isset,ET.earthworm.request.pool.stage2,track ip_pair; dsize:4; content:"|05 02 00 01|"; fast_pattern; classtype:trojan-activity; sid:9955007; rev:1;)
 ```
 
 ## Supporting Lua

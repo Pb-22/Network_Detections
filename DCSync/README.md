@@ -15,7 +15,7 @@ The Suricata rule matches the DRSUAPI interface UUID and operation number togeth
 
 Suricata 8.0.8 loaded the rule successfully and produced these results:
 
-| Capture | Packets | Alerts from SID 1000206 |
+| Capture | Packets | Alerts from SID 9955004 |
 | --- | ---: | ---: |
 | [Negative control](pcap/negative-drsuapi-cracknames.pcap) | 48 | 0 |
 | [Positive replication request](pcap/positive-drsuapi-dsgetncchanges.pcap) | 52 | 1 |

@@ -7,7 +7,7 @@ This rule identifies an established client request for operation 3 on the DRSUAP
 Download [dcsync-dsgetncchanges.rules](dcsync-dsgetncchanges.rules) as the directly loadable copy.
 
 ```suricata
-alert dcerpc any any -> $HOME_NET any (msg:"LOCAL POLICY DRSUAPI DsGetNCChanges Observed - Validate Source Replication Role"; flow:established,to_server; dcerpc.iface:e3514235-4b06-11d1-ab04-00c04fc2dcd2; dcerpc.opnum:3; reference:url,learn.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/58f33216-d9f1-43bf-a183-87e3c899c410; reference:url,attack.mitre.org/techniques/T1003/006/; classtype:policy-violation; sid:1000206; rev:1; metadata:attack_target Server_Endpoint, created_at 2026_11_15, deployment Internal, performance_impact Low, confidence High, signature_severity Major, tag directory_replication, updated_at 2026_11_15, mitre_tactic_id TA0006, mitre_tactic_name Credential_Access, mitre_technique_id T1003, mitre_technique_name OS_Credential_Dumping; target:dest_ip;)
+alert dcerpc any any -> $HOME_NET any (msg:"LOCAL POLICY Possible DCSync - DRSUAPI DsGetNCChanges Observed - Validate Source Replication Role"; flow:established,to_server; dcerpc.iface:e3514235-4b06-11d1-ab04-00c04fc2dcd2; dcerpc.opnum:3; reference:url,learn.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/58f33216-d9f1-43bf-a183-87e3c899c410; reference:url,attack.mitre.org/techniques/T1003/006/; classtype:policy-violation; sid:9955004; rev:1; metadata:attack_target Server_Endpoint, created_at 2026_11_15, deployment Internal, performance_impact Low, confidence High, signature_severity Major, tag directory_replication, updated_at 2026_11_15, mitre_tactic_id TA0006, mitre_tactic_name Credential_Access, mitre_technique_id T1003, mitre_technique_name OS_Credential_Dumping; target:dest_ip;)
 ```
 
 ## How it works
@@ -29,7 +29,7 @@ The parser maintains the interface context for the request. The rule therefore n
 
 The exact rule passed syntax validation and engine analysis on Suricata 8.0.8. Replay returned:
 
-| Capture | SID 1000206 alerts |
+| Capture | SID 9955004 alerts |
 | --- | ---: |
 | `negative-drsuapi-cracknames.pcap` | 0 |
 | `positive-drsuapi-dsgetncchanges.pcap` | 1 |
@@ -47,7 +47,7 @@ suricata -T -c /etc/suricata/suricata.yaml -S DCSync/Suricata/dcsync-dsgetncchan
 suricata -c /etc/suricata/suricata.yaml -S DCSync/Suricata/dcsync-dsgetncchanges.rules --set 'vars.address-groups.HOME_NET=[10.77.10.10]' --runmode single -r DCSync/pcap/dcsync-positive-negative-combined.pcap -l dcsync-output
 ```
 
-The combined replay produces one alert. The address override includes the supplied capture destination; use the appropriate `$HOME_NET` for the monitored environment during deployment. The rule uses local SID `1000206`, so check for a collision with existing local rules before loading it.
+The combined replay produces one alert. The address override includes the supplied capture destination; use the appropriate `$HOME_NET` for the monitored environment during deployment. The rule uses SID `9955004` from the maintainer-authorized Pb-22 range.
 
 ## Triage and visibility
 

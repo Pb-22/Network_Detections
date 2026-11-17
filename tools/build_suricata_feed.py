@@ -56,7 +56,7 @@ def render() -> tuple[bytes, bytes, list[dict[str, object]]]:
         "# License: BSD-3-Clause; see ../LICENSE",
         "# Source: https://github.com/Pb-22/Network_Detections",
         f"# Status: {policy['status']}",
-        "# Temporary local-use SIDs must be replaced after public SID allocation.",
+        f"# SID range: {policy['sid_start']}-{policy['sid_end']}",
         "",
     ]
     output = ("\n".join(header + lines) + "\n").encode("utf-8")

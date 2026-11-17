@@ -1,0 +1,10 @@
+sid,previous_sids,message,default_enabled,in_aggregate_feed,source
+9955000,1000202;9003122,PB22 HUNTING Possible Sliver Age and Minisign Key Material in Internal TCP Stream,true,true,feed/source/pb22.rules
+9955001,1000203,PB22 MALWARE CAV3RN DNS Channel Selection,true,true,feed/source/pb22.rules
+9955002,1000204,PB22 MALWARE CAV3RN DNS Deployment ID Freshness,true,true,feed/source/pb22.rules
+9955003,1000205,PB22 MALWARE CAV3RN DNS Deployment ID Recovery,true,true,feed/source/pb22.rules
+9955004,1000206,LOCAL POLICY Possible DCSync - DRSUAPI DsGetNCChanges Observed - Validate Source Replication Role,true,false,DCSync/Suricata/dcsync-dsgetncchanges.rules
+9955005,9000031,ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Request Pool Store,true,false,Pygmy-Goat-Earthworm/Suricata_Rules_with_Supporting_Lua.md
+9955006,9000032,ET MALWARE EARTHWORM SOCKS Reverse Proxy Tunnel Response Pool Match,true,false,Pygmy-Goat-Earthworm/Suricata_Rules_with_Supporting_Lua.md
+9955007,9000033,ET MALWARE EARTHWORM SOCKS Proxy Tunnel Post Setup Request Pool Match,true,false,Pygmy-Goat-Earthworm/Suricata_Rules_with_Supporting_Lua.md
+9955008,9002101,LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact,false,false,BPFDoor/Suricata/bpfdoor-icmp-magic.rules

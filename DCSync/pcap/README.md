@@ -10,7 +10,7 @@ These captures pair a successful `DsGetNCChanges` exchange with a control that b
 | [positive-drsuapi-dsgetncchanges.pcap](positive-drsuapi-dsgetncchanges.pcap) | DRSUAPI operations 0, 16, and 3, with a successful replication response | 52 | 1 |
 | [dcsync-positive-negative-combined.pcap](dcsync-positive-negative-combined.pcap) | Negative exchange followed by positive exchange | 100 | 1 |
 
-Results use Suricata 8.0.8 and [SID 1000206](../Suricata/dcsync-dsgetncchanges.rules), with `10.77.10.10` included in `$HOME_NET`.
+Results use Suricata 8.0.8 and [SID 9955004](../Suricata/dcsync-dsgetncchanges.rules), with `10.77.10.10` included in `$HOME_NET`.
 
 ## Traffic profile
 

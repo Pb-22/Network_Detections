@@ -1,8 +1,8 @@
 {
   "engine": "Suricata 8.0.8 RELEASE",
-  "validated_at_utc": "2026-11-16T02:02:28.881449+00:00",
+  "validated_at_utc": "2026-11-17T22:34:33.468216+00:00",
   "rule_file": "dcsync-dsgetncchanges.rules",
-  "rule_sha256": "3b7407dab3b221e71665df0372300e8c6089d6b624044bd698ecdebbbbafdc07",
+  "rule_sha256": "ec282abd9191e1349ba7666d6e5c40147064067b12235688db32f34c08df7563",
   "syntax_test": "pass",
   "engine_analysis": "pass",
   "rule_warnings": 0,
@@ -18,13 +18,13 @@
     {
       "pcap": "../pcap/positive-drsuapi-dsgetncchanges.pcap",
       "observed_alerts_by_sid": {
-        "1000206": 1
+        "9955004": 1
       }
     },
     {
       "pcap": "../pcap/dcsync-positive-negative-combined.pcap",
       "observed_alerts_by_sid": {
-        "1000206": 1
+        "9955004": 1
       }
     }
   ],
