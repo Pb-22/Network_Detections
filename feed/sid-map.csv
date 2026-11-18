@@ -9,3 +9,4 @@ sid,previous_sids,message,default_enabled,in_aggregate_feed,source
 9955007,9000033,ET MALWARE EARTHWORM SOCKS Proxy Tunnel Post Setup Request Pool Match,true,false,Pygmy-Goat-Earthworm/Suricata_Rules_with_Supporting_Lua.md
 9955008,9002101,LOCAL BPFDoor ICMP 0x7255 magic-byte wake-up artifact,false,false,BPFDoor/Suricata/bpfdoor-icmp-magic.rules
 9955009,1000207,LOCAL HUNTING WMI-style certutil command-output encoding request,true,true,WMI/Suricata/wmi-command-output-encoding.rules
+9955010,1000209,HUNTING WMI-style combined recovery-inhibition command request,true,true,WMI/T1490-Inhibit-System-Recovery/Suricata/wmi-recovery-inhibition.rules

@@ -1,5 +1,12 @@
 # Feed changelog
 
+## 2026-11-18 — WMI combined recovery inhibition
+
+- Added standalone SID `9955010` revision 7 to the six-rule subscription feed, replacing private local SID `1000209` without changing matching logic.
+- Added the complete Markdown rule file, visually wrapped HTML copy, 41 positive/negative captures, exact-rule replay results and checksums under `WMI/T1490-Inhibit-System-Recovery/`.
+- Replayed the six-rule aggregate against existing feed fixtures and combined-action, split-action and wrong-interface controls.
+- Preserved the matching wrong-interface negative and constructed-capture provenance. BPFDoor remains disabled; DCSync and Lua-backed EarthWorm remain standalone.
+
 ## 2026-11-17 — WMI command-output encoding
 
 - Added standalone SID `9955009` revision 12 and included it in the five-rule subscription feed.

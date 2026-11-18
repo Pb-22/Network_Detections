@@ -4,3 +4,4 @@ sid,rule,fixture,expected_alerts,status
 9955002,PB22 MALWARE CAV3RN DNS Deployment ID Freshness,Cav3rn/pcap/Cav3rn.pcap,1,validated maintainer-authorized SID
 9955003,PB22 MALWARE CAV3RN DNS Deployment ID Recovery,Cav3rn/pcap/Cav3rn.pcap,1,validated maintainer-authorized SID
 9955009,LOCAL HUNTING WMI-style certutil command-output encoding request,WMI/pcap/separate/authentic-execution.pcap,1,validated maintainer-authorized SID
+9955010,HUNTING WMI-style combined recovery-inhibition command request,WMI/T1490-Inhibit-System-Recovery/pcaps/combined-vss-bcd.pcap,1,validated maintainer-authorized SID

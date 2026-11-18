@@ -17,14 +17,14 @@ Additional detection packages:
 
 - [`RedFlick/`](RedFlick/): published ET Open check in and User-Agent rules, synthetic PCAP, and visual explainer.
 - [`DCSync/`](DCSync/): DRSUAPI replication detection, authentic lab captures, and packet walkthrough.
-- [`WMI/`](WMI/): WMI command-output encoding rule, sixteen comparison cases, and a combined replay capture.
+- [`WMI/`](WMI/): WMI command-output encoding and combined recovery-inhibition rules, positive/negative captures, and replay results.
 - [`Certipy/`](Certipy/): certificate authentication detection packages, including [PKINIT-U2U](Certipy/PKINIT-U2U/) with tested Zeek source, authentic captures and 39 offline replay cases.
 
 ## Pb-22 Open Suricata feed
 
-The independent feed is documented under [`feed/`](feed/). It contains five fixture-backed rules, deterministic generation, checksums, Suricata 8 validation results, feed-specific BSD-3-Clause licensing, and SID allocation and OISF index submission material.
+The independent feed is documented under [`feed/`](feed/). It contains six fixture-backed rules, deterministic generation, checksums, Suricata 8 validation results, feed-specific BSD-3-Clause licensing, and SID allocation and OISF index submission material.
 
-The downloadable feed uses SIDs `9955000-9955003` and WMI encoding SID `9955009` within the maintainer-authorized `9955000-9959999` range. The [repository-wide SID map](feed/sid-map.csv) also lists DCSync and the Lua-backed EarthWorm rules in their individual directories, plus disabled-by-default BPFDoor SID `9955008`. These additional rules are not automatically included in the aggregate feed. RedFlick is supplied by ET Open and is excluded from this independent feed. Registry PR review and OISF index listing are separate from permission to use the range.
+The downloadable feed uses SIDs `9955000-9955003` and WMI SIDs `9955009-9955010` within the maintainer-authorized `9955000-9959999` range. The [repository-wide SID map](feed/sid-map.csv) also lists DCSync and the Lua-backed EarthWorm rules in their individual directories, plus disabled-by-default BPFDoor SID `9955008`. These additional rules are not automatically included in the aggregate feed. RedFlick is supplied by ET Open and is excluded from this independent feed. Registry PR review and OISF index listing are separate from permission to use the range.
 
 Subscription feed URL:
 

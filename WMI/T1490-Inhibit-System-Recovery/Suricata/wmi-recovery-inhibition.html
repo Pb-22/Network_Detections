@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WMI Combined Recovery-Inhibition Command</title><style>*{box-sizing:border-box}html{color-scheme:light dark;scroll-behavior:smooth}body{margin:0;background:#f4f6f9;color:#182334;font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1160px;margin:36px auto;padding:36px 44px;background:#fff;border:1px solid #dce2ea;border-radius:14px}h1{font-size:2rem;line-height:1.2;margin:0 0 22px}h2{font-size:1.3rem;margin:36px 0 14px;padding-top:10px;border-top:1px solid #dce2ea}p,li,td,th{overflow-wrap:anywhere}a{color:#175fc2;text-decoration-thickness:1px;text-underline-offset:3px}code{font:0.88em/1.6 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;background:#eef2f7;border-radius:4px;padding:2px 4px}pre{padding:20px;background:#eef2f7;border:1px solid #d6dfe9;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;max-width:100%;margin:20px 0}pre code{padding:0;background:transparent;border-radius:0;display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;font-size:13px;line-height:1.7}table{border-collapse:collapse;width:100%;margin:18px 0;font-size:0.94rem}td,th{border:1px solid #dce2ea;padding:10px 12px;text-align:left;vertical-align:top}th{background:#eef2f7}.footnote{font-size:0.9rem}sup{line-height:0}footer{margin-top:28px;color:#536273;font-size:0.85rem}@media(max-width:640px){body{font-size:15px}main{margin:0;padding:22px 16px;border:0;border-radius:0}h1{font-size:1.65rem}pre{padding:12px}td,th{padding:7px 6px;font-size:0.84rem}}@media(prefers-color-scheme:dark){body{background:#101722;color:#e5eaf1}main{background:#172131;border-color:#344256}h2,td,th{border-color:#344256}th,code,pre{background:#202e41}pre{border-color:#3b4c63}a{color:#8fbaff}footer{color:#b5c1cf}}</style></head><body><main><h1 id="wmi-combined-recovery-inhibition-command">WMI Combined Recovery-Inhibition Command</h1>
+<p>This signature identifies a WMI-style process-creation request that combines deletion of recovery data with explicit disabling of Windows recovery. The command includes both actions in the same serialized input value. MITRE ATT&amp;CK describes these recovery-inhibition behaviors under <strong>T1490: Inhibit System Recovery</strong>.<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Message</td>
+<td>HUNTING WMI-style combined recovery-inhibition command request</td>
+</tr>
+<tr>
+<td>SID / revision</td>
+<td>9955010 / 7</td>
+</tr>
+<tr>
+<td>ATT&amp;CK tactic</td>
+<td>TA0040: Impact</td>
+</tr>
+<tr>
+<td>ATT&amp;CK technique</td>
+<td>T1490: Inhibit System Recovery</td>
+</tr>
+<tr>
+<td>Inspection</td>
+<td>Reassembled client-to-server TCP stream</td>
+</tr>
+<tr>
+<td>Destination scope</td>
+<td><code>$HOME_NET</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="rule">Rule</h2>
+<p>Use <a href="wmi-recovery-inhibition.rules">wmi-recovery-inhibition.rules</a> as the directly loadable copy. The signature below is one physical line. The <a href="wmi-recovery-inhibition.html">wrapped reading view</a> displays the same rule with visual line wrapping.</p>
+<pre><code class="language-suricata">alert tcp any any -&gt; $HOME_NET any (msg:&quot;HUNTING WMI-style combined recovery-inhibition command request&quot;; flow:established,to_server,only_stream; content:&quot;|05 00 00 83 10 00 00 00|&quot;; content:&quot;|18 00|&quot;; distance:14; within:2; content:&quot;|57 00 69 00 6e 00 33 00 32 00 5f 00 50 00 72 00 6f 00 63 00 65 00 73 00 73 00 00 00|&quot;; distance:0; within:256; nocase; content:&quot;|43 00 72 00 65 00 61 00 74 00 65 00 00 00|&quot;; distance:0; within:128; nocase; content:&quot;__PARAMETERS|00 01|&quot;; distance:0; within:2048; content:&quot;|72 00 65 00 63 00 6f 00 76 00 65 00 72 00 79 00 65 00 6e 00 61 00 62 00 6c 00 65 00 64 00|&quot;; distance:0; within:1024; nocase; fast_pattern; content:&quot;|64 00 65 00 6c 00 65 00 74 00 65 00|&quot;; nocase; pcre:&quot;/(?(DEFINE)(?&lt;S&gt;(?:[\x20\x09]\x00){1,8})(?&lt;O&gt;(?:[\x20\x09]\x00){0,8})(?&lt;P&gt;(?:[A-Za-z]\x00\x3a\x00\x5c\x00\x57\x00\x69\x00\x6e\x00\x64\x00\x6f\x00\x77\x00\x73\x00\x5c\x00\x53\x00\x79\x00\x73\x00\x74\x00\x65\x00\x6d\x00\x33\x00\x32\x00\x5c\x00|\x25\x00\x53\x00\x79\x00\x73\x00\x74\x00\x65\x00\x6d\x00\x52\x00\x6f\x00\x6f\x00\x74\x00\x25\x00\x5c\x00\x53\x00\x79\x00\x73\x00\x74\x00\x65\x00\x6d\x00\x33\x00\x32\x00\x5c\x00)?)(?&lt;D&gt;(?:(?&amp;P)\x76\x00\x73\x00\x73\x00\x61\x00\x64\x00\x6d\x00\x69\x00\x6e\x00(?:\x2e\x00\x65\x00\x78\x00\x65\x00)?(?&amp;S)\x64\x00\x65\x00\x6c\x00\x65\x00\x74\x00\x65\x00(?&amp;S)\x73\x00\x68\x00\x61\x00\x64\x00\x6f\x00\x77\x00\x73\x00(?&amp;S)(?:\x2f\x00\x61\x00\x6c\x00\x6c\x00(?:(?&amp;S)\x2f\x00\x71\x00\x75\x00\x69\x00\x65\x00\x74\x00)?|\x2f\x00\x71\x00\x75\x00\x69\x00\x65\x00\x74\x00(?&amp;S)\x2f\x00\x61\x00\x6c\x00\x6c\x00)|(?&amp;P)\x77\x00\x6d\x00\x69\x00\x63\x00(?:\x2e\x00\x65\x00\x78\x00\x65\x00)?(?&amp;S)\x73\x00\x68\x00\x61\x00\x64\x00\x6f\x00\x77\x00\x63\x00\x6f\x00\x70\x00\x79\x00(?&amp;S)\x64\x00\x65\x00\x6c\x00\x65\x00\x74\x00\x65\x00(?:(?&amp;S)\x2f\x00\x6e\x00\x6f\x00\x69\x00\x6e\x00\x74\x00\x65\x00\x72\x00\x61\x00\x63\x00\x74\x00\x69\x00\x76\x00\x65\x00)?|(?&amp;P)\x77\x00\x62\x00\x61\x00\x64\x00\x6d\x00\x69\x00\x6e\x00(?:\x2e\x00\x65\x00\x78\x00\x65\x00)?(?&amp;S)\x64\x00\x65\x00\x6c\x00\x65\x00\x74\x00\x65\x00(?&amp;S)\x63\x00\x61\x00\x74\x00\x61\x00\x6c\x00\x6f\x00\x67\x00(?:(?&amp;S)\x2d\x00\x71\x00\x75\x00\x69\x00\x65\x00\x74\x00)?))(?&lt;R&gt;(?&amp;P)\x62\x00\x63\x00\x64\x00\x65\x00\x64\x00\x69\x00\x74\x00(?:\x2e\x00\x65\x00\x78\x00\x65\x00)?(?&amp;S)\x2f\x00\x73\x00\x65\x00\x74\x00(?&amp;S)(?:\x7b\x00\x64\x00\x65\x00\x66\x00\x61\x00\x75\x00\x6c\x00\x74\x00\x7d\x00|\x7b\x00\x63\x00\x75\x00\x72\x00\x72\x00\x65\x00\x6e\x00\x74\x00\x7d\x00)(?&amp;S)\x72\x00\x65\x00\x63\x00\x6f\x00\x76\x00\x65\x00\x72\x00\x79\x00\x65\x00\x6e\x00\x61\x00\x62\x00\x6c\x00\x65\x00\x64\x00(?&amp;S)\x6e\x00\x6f\x00)(?&lt;J&gt;(?&amp;O)\x26\x00(?:\x26\x00)?(?&amp;O))(?&lt;F&gt;\x22\x00(?:[\x20-\x21\x23-\x7e]\x00){1,160}\x22\x00)(?&lt;B&gt;(?:(?&amp;D)(?&amp;J)(?&amp;R)|(?&amp;R)(?&amp;J)(?&amp;D))))\x05\x00\x00\x83\x10\x00\x00\x00.{14}\x18\x00(?&gt;(?!.{0,256}\x05\x00[\x00-\x13][\x03\x83]\x10\x00\x00\x00).{0,256}\x57\x00\x69\x00\x6e\x00\x33\x00\x32\x00\x5f\x00\x50\x00\x72\x00\x6f\x00\x63\x00\x65\x00\x73\x00\x73\x00\x00\x00)(?&gt;(?!.{0,128}\x05\x00[\x00-\x13][\x03\x83]\x10\x00\x00\x00).{0,128}\x43\x00\x72\x00\x65\x00\x61\x00\x74\x00\x65\x00\x00\x00)(?&gt;(?!.{0,2048}\x05\x00[\x00-\x13][\x03\x83]\x10\x00\x00\x00).{0,2048}__PARAMETERS\x00\x01)\x63\x00\x6d\x00\x64\x00(?:\x2e\x00\x65\x00\x78\x00\x65\x00)?(?&amp;S)(?:\x2f\x00\x51\x00(?&amp;S))?\x2f\x00\x63\x00(?&amp;S)(?:(?&amp;B)|\x28\x00(?&amp;O)(?&amp;B)(?&amp;O)\x29\x00)(?:(?&amp;S)\x31\x00\x3e\x00(?&amp;S)(?&amp;F)(?&amp;S)\x32\x00\x3e\x00\x26\x00\x31\x00)?(?:[\x20\x09]\x00){0,256}\x00\x00/si&quot;; reference:url,attack.mitre.org/techniques/T1490/; classtype:policy-violation; sid:9955010; rev:7; metadata:deployment Internal, confidence Low, signature_severity Major, created_at 2026_11_18, updated_at 2026_11_18, mitre_tactic_id TA0040, mitre_tactic_name Impact, mitre_technique_id T1490, mitre_technique_name Inhibit_System_Recovery; target:dest_ip;)
+</code></pre>
+<p>SID <code>9955010</code> is included in the <a href="../../../feed/">subscription feed</a>. Load either the aggregate feed or the standalone file, not both copies.</p>
+<h2 id="detection-logic">Detection logic</h2>
+<p><code>Win32_Process.Create</code> accepts the command line for a new process.<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> In the WMI protocol, <code>IWbemServices::ExecMethod</code> carries a class/object path, method name, and input parameters; its operation number is 24.<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup></p>
+<p>The signature selects the observed request framing, the <code>Win32_Process</code> class, <code>Create</code>, and the serialized command parameter. Its command grammar combines one deletion action with one recovery-disabling action:</p>
+<table>
+<thead>
+<tr>
+<th>Required part</th>
+<th>Selected command forms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recovery-data deletion</td>
+<td><code>vssadmin delete shadows /all</code>, <code>wmic shadowcopy delete</code>, or <code>wbadmin delete catalog</code></td>
+</tr>
+<tr>
+<td>Recovery disabling</td>
+<td><code>bcdedit /set {default} recoveryenabled no</code> or the corresponding <code>{current}</code> form</td>
+</tr>
+<tr>
+<td>Association</td>
+<td>Both parts in one command value, joined by <code>&amp;</code> or <code>&amp;&amp;</code>, in either order</td>
+</tr>
+</tbody>
+</table>
+<p>The supplied variants cover executable names with and without <code>.exe</code>, the selected System32 paths, case and whitespace changes, and a parenthesized command with stdout/stderr capture. The parser requires complete executable and argument tokens and a terminated UTF-16LE value. Echoed and commented command text remain outside that grammar.</p>
+<p>Seven content checks provide literal gates before one bounded PCRE. The 30-byte UTF-16LE <code>recoveryenabled</code> literal is the fast pattern. Atomic field-selection groups retain the selected class, method and parameter occurrence while the command grammar is evaluated.</p>
+<p>The rule is standalone. It uses standard network scope and packet-visible request contents; it requires no account lists, management-host inventories, flowbits, xbits or Lua.</p>
+<h2 id="replay-results">Replay results</h2>
+<p>Suricata 8.0.8 loaded the exact rule successfully. All forty-one capture outcomes reproduce the recorded matrix with this message and the ATT&amp;CK metadata.</p>
+<table>
+<thead>
+<tr>
+<th>Case group</th>
+<th>Type</th>
+<th style="text-align: right;">Cases</th>
+<th style="text-align: right;">Expected alerts per case</th>
+<th style="text-align: right;">Observed alerts per case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Combined commands and supported variants</td>
+<td>P</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Quiet negative controls</td>
+<td>N</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Wrong RPC interface</td>
+<td>N</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>P means the combined-request rule should alert. N means it should remain quiet. Type describes the detection objective, independently of operator authorization.</p>
+<p>The controls include each action alone, actions split between separate requests, quoted or commented text, recovery queries and re-enabling, fake executable/value suffixes, and changed class, method, operation or direction. The positive set includes 512-, 96- and 17-byte TCP segments and a valid combined request following two coalesced single-action requests. Four additional <code>autofp</code> replays each produced one alert.</p>
+<p>The <a href="../pcaps/README.md">capture guide</a> contains every case and its observed count. <a href="validation.json">validation.json</a> binds the results to the exact rule and capture hashes.</p>
+<p>When replayed with the subscription feed, <code>combined-vss-bcd.pcap</code> produces one alert from recovery SID <code>9955010</code> and one from encoding SID <code>9955009</code>. The source conversation retains a separate command-output encoding request. These are different behavior matches; the standalone counts above refer only to the recovery rule. The wrong-interface capture also produces one alert from each rule. The split-actions control remains quiet for both.</p>
+<h2 id="packet-construction">Packet construction</h2>
+<p>The combined-command and boundary captures are offline derivatives of the controlled WMI execution capture. Command substitutions preserve serialized field lengths, and IPv4/TCP checksums are recomputed. The payload changes retain the original RPC/NTLM signature bytes; authentication signatures are not recomputed for the derivatives. Coalesced conversations use distinct modeled call IDs, and segmentation variants preserve their constructed TCP stream bytes.</p>
+<p>The original authorized execution, read-only query and sealed native comparison retain their original capture bytes. The test command substitutions were performed offline; no destructive recovery operation was executed to produce them.</p>
+<h2 id="visibility-and-interpretation">Visibility and interpretation</h2>
+<p>Inspection requires readable request arguments. The sealed native control hides those arguments. The signature follows the supplied little-endian, <code>0x83</code> request framing and command serialization. Its conservative next-header windows select the tested request layout.</p>
+<p>The wrong-interface control produces one alert. The rule recognizes the WMI-style request pattern without authoritative negotiated-interface/context binding. TCP segmentation results establish stream-reassembly coverage for the supplied cases; RPC fragmentation is a separate mechanism.</p>
+<p>The command grammar selects the documented shell forms, recovery flags and boot-entry identifiers. Other command wrappers, encoded commands, additional shell operations, different quoted executable paths or serialization layouts require their own coverage evidence.</p>
+<p>An alert identifies a request containing both recovery-inhibition actions. Process-creation success and the resulting system changes require response or endpoint evidence. Microsoft documents separate return values for successful creation and errors.<sup id="fnref2:2"><a class="footnote-ref" href="#fn:2">2</a></sup></p>
+<h2 id="investigating-an-alert">Investigating an alert</h2>
+<p>Review the full command, initiating system and account, target, related process activity, and backup or change records. Backup applications legitimately manage and delete snapshots through VSS.<sup id="fnref:4"><a class="footnote-ref" href="#fn:4">4</a></sup> A request that also disables recovery deserves review in that operational context.</p>
+<p>A deletion-only maintenance request remains outside this combined-action predicate. An authorized request containing both actions remains a behavior match. Source identity and asset role provide triage context without changing the core matching conditions.</p>
+<h2 id="offline-replay">Offline replay</h2>
+<p>From this directory, using Suricata 8.0.8 and its standard configuration:</p>
+<pre><code class="language-sh">mkdir -p replay-output
+suricata -T -c /etc/suricata/suricata.yaml -S wmi-recovery-inhibition.rules -l replay-output
+suricata -c /etc/suricata/suricata.yaml -S wmi-recovery-inhibition.rules -r ../pcaps/combined-vss-bcd.pcap --set 'vars.address-groups.HOME_NET=10.77.0.0/16' --runmode single -k none -l replay-output
+</code></pre>
+<p>The positive capture produces one SID 9955010 alert. Replay <code>../pcaps/split-actions-across-requests.pcap</code> into a separate empty output directory to observe zero. Use the monitored environment's normal <code>$HOME_NET</code> value when loading the rule on a sensor.</p>
+<h2 id="reading-and-copying">Reading and copying</h2>
+<p>The <code>.rules</code> file and this fenced block contain the same one-line signature. The HTML view uses CSS soft wrapping: it changes the display width while retaining the original code text. Markdown viewers choose their own code-block layout; the HTML view provides a wrapped reading surface.</p>
+<h2 id="references">References</h2>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://attack.mitre.org/techniques/T1490">MITRE ATT&amp;CK: Inhibit System Recovery (T1490)</a>.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/create-method-in-class-win32-process">Microsoft: Create method of the Win32_Process class</a>.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmi/cbce28cd-fd45-4df1-9ec8-416e6bb33691">Microsoft MS-WMI: IWbemServices::ExecMethod (Opnum 24)</a>.&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p><a href="https://learn.microsoft.com/en-us/windows-server/storage/file-server/volume-shadow-copy-service">Microsoft: Volume Shadow Copy Service (VSS)</a>.&#160;<a class="footnote-backref" href="#fnref:4" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div></main></body></html>

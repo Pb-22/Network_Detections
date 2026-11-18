@@ -1,7 +1,7 @@
 {
   "suricata_version": "8.0.8 RELEASE",
-  "validated_at_utc": "2026-11-17T23:16:14.873429+00:00",
-  "rule_sha256": "405a39d071ae7b6cbb80125a3ccf989c68479bc2cc6001d219c588776e092a72",
+  "validated_at_utc": "2026-11-18T06:06:42.235664+00:00",
+  "rule_sha256": "a46e426fac93088cb31f42750b8378ff92cadd069e50a84512253555fe0dbc55",
   "replay_address_groups": {
     "HOME_NET": "any",
     "EXTERNAL_NET": "any"
@@ -14,7 +14,7 @@
       "runmode": "single",
       "ok": true,
       "alert_count": 0,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {},
       "diagnostics": "(none)"
     },
@@ -25,7 +25,7 @@
       "runmode": "single",
       "ok": true,
       "alert_count": 4,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {
         "9955000": 4
       },
@@ -38,7 +38,7 @@
       "runmode": "single",
       "ok": true,
       "alert_count": 3,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {
         "9955001": 1,
         "9955002": 1,
@@ -53,7 +53,7 @@
       "runmode": "single",
       "ok": true,
       "alert_count": 1,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {
         "9955009": 1
       },
@@ -66,7 +66,7 @@
       "runmode": "single",
       "ok": true,
       "alert_count": 7,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {
         "9955009": 7
       },
@@ -79,9 +79,62 @@
       "runmode": "autofp",
       "ok": true,
       "alert_count": 7,
-      "rules_enabled_count": 5,
+      "rules_enabled_count": 6,
       "sid_counts": {
         "9955009": 7
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-recovery-positive",
+      "pcap": "WMI/T1490-Inhibit-System-Recovery/pcaps/combined-vss-bcd.pcap",
+      "pcap_sha256": "050d1840cab778e47c6c680c73fd1a41a7db3d969bc19732bd11432ff0921950",
+      "runmode": "single",
+      "ok": true,
+      "alert_count": 2,
+      "rules_enabled_count": 6,
+      "sid_counts": {
+        "9955009": 1,
+        "9955010": 1
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-recovery-positive-autofp",
+      "pcap": "WMI/T1490-Inhibit-System-Recovery/pcaps/combined-vss-bcd.pcap",
+      "pcap_sha256": "050d1840cab778e47c6c680c73fd1a41a7db3d969bc19732bd11432ff0921950",
+      "runmode": "autofp",
+      "ok": true,
+      "alert_count": 2,
+      "rules_enabled_count": 6,
+      "sid_counts": {
+        "9955009": 1,
+        "9955010": 1
+      },
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-recovery-split-negative",
+      "pcap": "WMI/T1490-Inhibit-System-Recovery/pcaps/split-actions-across-requests.pcap",
+      "pcap_sha256": "9e468793c7661d7c15d699d1b139324c17b72658e30d4f8c7f66fabbe53ab690",
+      "runmode": "single",
+      "ok": true,
+      "alert_count": 0,
+      "rules_enabled_count": 6,
+      "sid_counts": {},
+      "diagnostics": "(none)"
+    },
+    {
+      "name": "wmi-recovery-wrong-interface",
+      "pcap": "WMI/T1490-Inhibit-System-Recovery/pcaps/wrong-interface.pcap",
+      "pcap_sha256": "28181e5cdadeb611b79d24cd93b1cfc83c08ba23d1fd2ce34b172434ea0481bf",
+      "runmode": "single",
+      "ok": true,
+      "alert_count": 2,
+      "rules_enabled_count": 6,
+      "sid_counts": {
+        "9955009": 1,
+        "9955010": 1
       },
       "diagnostics": "(none)"
     }

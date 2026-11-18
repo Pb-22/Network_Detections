@@ -17,6 +17,10 @@ EXPECTED = {
     "wmi-authentic": {"9955009": 1},
     "wmi-combined": {"9955009": 7},
     "wmi-combined-autofp": {"9955009": 7},
+    "wmi-recovery-positive": {"9955009": 1, "9955010": 1},
+    "wmi-recovery-positive-autofp": {"9955009": 1, "9955010": 1},
+    "wmi-recovery-split-negative": {},
+    "wmi-recovery-wrong-interface": {"9955009": 1, "9955010": 1},
 }
 
 receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
@@ -31,7 +35,7 @@ for run in receipt.get("runs", []):
     seen.add(name)
     if run.get("ok") is not True or run.get("diagnostics") != "(none)":
         raise SystemExit(f"validation run is not clean: {name}")
-    if run.get("rules_enabled_count") != 5:
+    if run.get("rules_enabled_count") != 6:
         raise SystemExit(f"wrong enabled rule count: {name}")
     if run.get("sid_counts") != EXPECTED[name]:
         raise SystemExit(f"unexpected SID counts for {name}: {run.get('sid_counts')}")

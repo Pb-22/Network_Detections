@@ -10,8 +10,9 @@ The request combines `Win32_Process`, `Create`, the serialized command parameter
 | --- | --- |
 | [Suricata](Suricata/) | Loadable rule, matching conditions, replay results, and triage guidance |
 | [pcap](pcap/) | One combined capture, sixteen separate cases, and a packet-by-packet case map |
+| [T1490-Inhibit-System-Recovery](T1490-Inhibit-System-Recovery/) | Combined recovery-inhibition rule, forty-one positive/negative captures, and replay results |
 
-The rule is included in the [subscription feed](../feed/). Load either the aggregate feed or the standalone rule file, not both copies.
+The encoding rule (`9955009`) and recovery-inhibition rule (`9955010`) are included in the [subscription feed](../feed/). Load either the aggregate feed or the corresponding standalone rule files, not both copies.
 
 ## Replay results
 

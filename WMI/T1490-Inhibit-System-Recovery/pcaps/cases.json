@@ -1,0 +1,426 @@
+{
+  "technique_id": "T1490",
+  "technique_name": "Inhibit System Recovery",
+  "rule_message": "HUNTING WMI-style combined recovery-inhibition command request",
+  "replay_sid": 9955010,
+  "replay_revision": 7,
+  "suricata_version": "8.0.8 RELEASE",
+  "type_definition": {
+    "P": "The combined-request detector should alert",
+    "N": "The combined-request detector should remain quiet"
+  },
+  "cases": [
+    {
+      "case": "combined-vss-bcd",
+      "type": "P",
+      "file": "combined-vss-bcd.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "050d1840cab778e47c6c680c73fd1a41a7db3d969bc19732bd11432ff0921950",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "combined-wmic-bcd",
+      "type": "P",
+      "file": "combined-wmic-bcd.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "9137886d624d90673ac452a66c8d56181790a10263f1efe93b5f44faaf4bc8a8",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "combined-catalog-bcd",
+      "type": "P",
+      "file": "combined-catalog-bcd.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "f30b09df6d05b651b8a4d9d95390feed10839bc216daace4b9623bf406bbab45",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "reversed-actions",
+      "type": "P",
+      "file": "reversed-actions.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "977bdfe3abe4c422b315c5a8f1458467d2bae541a97a902d9b03f10433bff442",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "and-and",
+      "type": "P",
+      "file": "and-and.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "8cfb939cce6bc7d009caee650713ea8464a17aaf1ebe64e9d32633693d3375f2",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "case-variation",
+      "type": "P",
+      "file": "case-variation.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "5d28c975d6e4665b85cc94e95f9ff36b8d07fd3c4303da3b66bdc29d4076bf97",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "extra-whitespace",
+      "type": "P",
+      "file": "extra-whitespace.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "dc1a5a9d181ac9de483b2d03227785db9f0a03ae8bfe6562c27b303dca458fc6",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "no-exe-suffix",
+      "type": "P",
+      "file": "no-exe-suffix.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "86c8455c5421e7e805713e97b2a417e3cfb0d918eb56714e2405058946a7e9a9",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "system32-paths",
+      "type": "P",
+      "file": "system32-paths.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "f55313fdff62f18f51eb94fadf62e268f82173dc7168f15e04d043f30168260d",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "native-output-wrapper",
+      "type": "P",
+      "file": "native-output-wrapper.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "a9f0c9b1babfce3cae5a3207dce83ce238bcb2002e8c8e9c97c5dea74381da31",
+      "provenance": "Modeled native wmiexec parenthesized command and stdout/stderr capture; no live execution"
+    },
+    {
+      "case": "segmented-512",
+      "type": "P",
+      "file": "segmented-512.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 366,
+      "sha256": "f02688c226d606784c53df742494293fee7e52a2a1364a099cc1f527c892e466",
+      "provenance": "Byte-preserving TCP segmentation of constructed conjunction request"
+    },
+    {
+      "case": "segmented-96",
+      "type": "P",
+      "file": "segmented-96.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 1443,
+      "sha256": "b8bdf679e8c9213f5156966f4276f4f4e1ba64f7fcbdd38138aff8630699e4e1",
+      "provenance": "Byte-preserving TCP segmentation of constructed conjunction request"
+    },
+    {
+      "case": "segmented-17",
+      "type": "P",
+      "file": "segmented-17.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 7389,
+      "sha256": "63a135db675fba259d6892d98f4ce81868da2d063b1d1adf9c37d6ed51287d57",
+      "provenance": "Byte-preserving TCP segmentation of constructed conjunction request"
+    },
+    {
+      "case": "coalesced-two-positives",
+      "type": "P",
+      "file": "coalesced-two-positives.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 5,
+      "sha256": "ec897aea740d16997492c414f59f9c0db2184c07c266a7d33e5af3062efd53a7",
+      "provenance": "Two matching RPC PDUs in one packet; raw signature alert multiplicity is per inspection, not request accounting"
+    },
+    {
+      "case": "coalesced-positive-then-benign",
+      "type": "P",
+      "file": "coalesced-positive-then-benign.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 5,
+      "sha256": "08d0b4e007cd7a72d8e2897302d0f268670fc319e6847bdc658e97b544850b93",
+      "provenance": "Matching request followed immediately by a separate benign command"
+    },
+    {
+      "case": "coalesced-single-actions-then-positive",
+      "type": "P",
+      "file": "coalesced-single-actions-then-positive.pcap",
+      "expected_alerts": 1,
+      "observed_alerts": 1,
+      "packets": 5,
+      "sha256": "2bcbcbbdb5a8f62b1285723875b36c4c4b0200ffa0a10edf88fb0b523d03fc9d",
+      "provenance": "Earlier partial matches must not hide a later complete request"
+    },
+    {
+      "case": "deletion-only",
+      "type": "N",
+      "file": "deletion-only.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "50ea3af890b15829f0500f7be591ddaf0e4813fb8ea06249ee9d242a14db6722",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "wmic-deletion-only",
+      "type": "N",
+      "file": "wmic-deletion-only.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "5a262a050d52ba9e16f5ec2525e72d67e9c64d1c082a6f67cb3998eb56a728e9",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "catalog-only",
+      "type": "N",
+      "file": "catalog-only.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "dde1404ee41d7ae4aa822c78f4c45180998317506c173a0254974c944c539c48",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "recovery-only",
+      "type": "N",
+      "file": "recovery-only.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "ef6190e979c1f0e454aec6dfb1efd0d0301be149bf56627143bbaf5119340575",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "list-shadows",
+      "type": "N",
+      "file": "list-shadows.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "6234730cc9dc442c4eb17af61407d14efe53338d1d3d2ed42bd3cea0d1778299",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "oldest-only",
+      "type": "N",
+      "file": "oldest-only.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "ff898e0c7582bd500f6a250d232dfd9cbc3101e0e89b4587e54991d44a0da228",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "recovery-query",
+      "type": "N",
+      "file": "recovery-query.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "aa63b1fdb7cb4820b4caa559a5a68bd0d57167c957a6982164b52602f72853dd",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "enable-recovery",
+      "type": "N",
+      "file": "enable-recovery.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "31ab71f2991950719e8f4ccd9b9b06f6b723e2a230b7ab1ee2d44a08a57df1f7",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "echo-both",
+      "type": "N",
+      "file": "echo-both.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "c484064f03410470f18ec9d16c50b0ce62af45e86b3aaea98fe9462ed899599c",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "comment-both",
+      "type": "N",
+      "file": "comment-both.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "5e972d25abd841423ac3d0ede9ec37db088f5929f90fbd19083133ddf8d62544",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "echo-second",
+      "type": "N",
+      "file": "echo-second.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "ef9d918e5b8f7d0d03e9ad08ee990d934fa722d8c29010b49901251ff6e3d77d",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "comment-second",
+      "type": "N",
+      "file": "comment-second.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "b306b9069463f0c0e32ce0affe2ce1b82d4f41f7a92fcb7160c97a967dd9794b",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "fake-executable",
+      "type": "N",
+      "file": "fake-executable.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "ec94b1788f0f721629345fceaf5b5d7440ad87ae78378c10e63d1e39c7aee2ca",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "fake-recovery-value",
+      "type": "N",
+      "file": "fake-recovery-value.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "69251d0809c67cc503612867b2bf66952a33ac93c4f0decbebdeb5a3054e626e",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "description-text",
+      "type": "N",
+      "file": "description-text.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "32993ac224485a350187f341608c4d9b2defe8b1a6d147e930dff48ab1581890",
+      "provenance": "Constructed command-bearing request"
+    },
+    {
+      "case": "split-actions-across-requests",
+      "type": "N",
+      "file": "split-actions-across-requests.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 5,
+      "sha256": "9e468793c7661d7c15d699d1b139324c17b72658e30d4f8c7f66fabbe53ab690",
+      "provenance": "Both required actions are visible, but belong to different RPC requests"
+    },
+    {
+      "case": "split-reversed-actions",
+      "type": "N",
+      "file": "split-reversed-actions.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 5,
+      "sha256": "d299fd8a8979198fad350aa984b38216e7f7ecb4f01599fb88b884873e863da6",
+      "provenance": "Reversed separate requests remain outside the single-request contract"
+    },
+    {
+      "case": "wrong-interface",
+      "type": "N",
+      "file": "wrong-interface.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 1,
+      "packets": 202,
+      "sha256": "28181e5cdadeb611b79d24cd93b1cfc83c08ba23d1fd2ce34b172434ea0481bf",
+      "provenance": "Constructed wrong-interface boundary; expected quiet under strict WMI semantics"
+    },
+    {
+      "case": "wrong-opnum",
+      "type": "N",
+      "file": "wrong-opnum.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "7fcc1a11892249c8fb65c1e1126b6d2afeb4e322da439f1ffeb2e39465a4e394",
+      "provenance": "Constructed wrong-opnum boundary; expected quiet under strict WMI semantics"
+    },
+    {
+      "case": "wrong-class",
+      "type": "N",
+      "file": "wrong-class.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "f567d3070d366f51dc612e389932f123a1f4360d03b4d22c47ba4f805b054b11",
+      "provenance": "Constructed wrong-class boundary; expected quiet under strict WMI semantics"
+    },
+    {
+      "case": "wrong-method",
+      "type": "N",
+      "file": "wrong-method.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "8700cb39ce81795756a88838445a98d76b02baef4060a460cebb379d7d2438bf",
+      "provenance": "Constructed wrong-method boundary; expected quiet under strict WMI semantics"
+    },
+    {
+      "case": "wrong-direction",
+      "type": "N",
+      "file": "wrong-direction.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 5,
+      "sha256": "9537f64c0a27e3748a0cb269c6a7d6bca49f48a61cb19b05ca4a88e459103e0c",
+      "provenance": "Handshake-complete modeled server-to-client command with correct TCP sequence/ACK values; not an authenticated RPC conversation"
+    },
+    {
+      "case": "original-authorized-whoami",
+      "type": "N",
+      "file": "original-authorized-whoami.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 202,
+      "sha256": "7b2a63fee5df17fbe92f7a2e510f03f7140bfa7172fbd455bc85f355bb1aa56f",
+      "provenance": "Unmodified authentic authorized execution; no recovery-inhibition conjunction"
+    },
+    {
+      "case": "original-readonly-query",
+      "type": "N",
+      "file": "original-readonly-query.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 115,
+      "sha256": "6fd7e1fbd952598a72f542575a39a68241d65b46ce8aa5b493cdfa7d1be984ba",
+      "provenance": "Unmodified authentic read-only query"
+    },
+    {
+      "case": "original-sealed-control",
+      "type": "N",
+      "file": "original-sealed-control.pcap",
+      "expected_alerts": 0,
+      "observed_alerts": 0,
+      "packets": 122,
+      "sha256": "c6e9271bd2f58afd143d7aea73269791978a84e3229b3b76518c7e603e0a2afe",
+      "provenance": "Unmodified authentic control; sealed control measures visibility only"
+    }
+  ],
+  "rule_file": "../Suricata/wmi-recovery-inhibition.rules",
+  "rule_sha256": "fa691836e95ef6adbb145bc21835fa8cdb7358be608471e1af8fa2cd6535474e"
+}
