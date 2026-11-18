@@ -35,7 +35,7 @@ tshark -n -r pcap/benign-rdp-nla-u2u.pcap \
   -Y 'frame.number == 91 || frame.number == 94' -V
 ```
 
-No decryption keys are required for these wire observations. Wireshark decodes wire `0x8` as ENC-TKT-IN-SKEY; Zeek 9.0.0's event-field naming differs. See the [parser notes](DETECTOR-GUIDE.md#zeek-900-parser-compatibility).
+No decryption keys are required for these wire observations. Wireshark decodes wire `0x8` as ENC-TKT-IN-SKEY; Zeek 9.0.0's event-field naming differs. See the [parser notes](https://github.com/Pb-22/zeek-detections/blob/main/DETECTOR-GUIDE.md#zeek-900-parser-compatibility).
 
 ## Explicit partial-view derivation
 
@@ -73,4 +73,4 @@ tshark -n -r pcap/positive-pkinit-u2u.pcap \
   -e frame.number -e frame.cap_len -e frame.len -e _ws.expert.message
 ```
 
-A zero TShark exit status does not mean no `_ws.malformed` nodes. Conversely, a TShark anomaly does not establish that Zeek failed: `validation.json` records the exact Zeek replay counts and reporter-error gate separately.
+A zero TShark exit status does not mean no `_ws.malformed` nodes. Conversely, a TShark anomaly does not establish that Zeek failed: the [current Zeek validation receipt](https://github.com/Pb-22/zeek-detections/blob/main/validation.json) records the exact replay counts and reporter-error gate separately.
