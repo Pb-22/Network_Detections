@@ -29,15 +29,15 @@ ModbusWriteRejection::Register_Write_Illegal_Function
 
 The Notice action is `Notice::ACTION_LOG`, with a suppression interval of `0secs`. Separate parsed responses produce separate notices, including repeated transaction IDs and coalesced messages. Existing Modbus logging stays enabled.
 
-## Replay a capture
+## Replay the combined positive and negative capture
 
 From this directory, run:
 
 ```sh
-zeek -Cr ../../../pcap/positive06_unit0_tid0.pcap ./modbus-write-illegal-function.zeek
+zeek -Cr ../../../pcap/Register_Write_Illegal_Function__combined_positive_negative__expected_2_notices.pcap ./modbus-write-illegal-function.zeek
 ```
 
-That capture produces one matching notice. Zeek writes its logs in the current working directory.
+The combined capture produces two matching notices, one for FC06 and one for FC16. It includes normal traffic and other error cases alongside the matching responses. Zeek writes its logs in the current working directory.
 
 The [capture manifest](../../../pcap/manifest.csv) lists all 100 companion PCAPs, their expected notice counts on Zeek 8.0.11 and 9.0.1, and their SHA256 values. [SHA256SUMS](../../../pcap/SHA256SUMS) supports direct file verification from the PCAP directory:
 
