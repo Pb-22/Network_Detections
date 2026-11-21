@@ -39,7 +39,7 @@ zeek -Cr ../../../pcap/Register_Write_Illegal_Function__combined_positive_negati
 
 The combined capture produces two matching notices, one for FC06 and one for FC16. It includes normal traffic and other error cases alongside the matching responses. Zeek writes its logs in the current working directory.
 
-The [capture manifest](../../../pcap/manifest.csv) lists all 100 companion PCAPs, their expected notice counts on Zeek 8.0.11 and 9.0.1, and their SHA256 values. [SHA256SUMS](../../../pcap/SHA256SUMS) supports direct file verification from the PCAP directory:
+The [capture manifest](../../../pcap/manifest.csv) lists the companion PCAPs, their notice types, expected counts on Zeek 8.0.11 and 9.0.1, and SHA256 values. Select rows for `ModbusWriteRejection::Register_Write_Illegal_Function` when testing this script. [SHA256SUMS](../../../pcap/SHA256SUMS) supports direct file verification from the PCAP directory:
 
 ```sh
 sha256sum -c SHA256SUMS
