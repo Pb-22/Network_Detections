@@ -1,12 +1,13 @@
 {
-  "feed": "pb22/open",
-  "status": "maintainer-authorized; registry merge pending",
-  "sid_policy": "maintainer-authorized",
+  "feed": "pb-22/open",
+  "status": "SID allocation merged",
+  "sid_policy": "allocated",
   "sid_start": 9955000,
   "sid_end": 9959999,
   "rule_count": 6,
   "replacement_required": false,
   "registry": "https://sidallocation.org/",
   "authorization_url": "https://github.com/sidallocation/sidallocation.org/issues/55#issuecomment-6959202111",
-  "registry_pull_request": "https://github.com/sidallocation/sidallocation.org/pull/56"
+  "registry_pull_request": "https://github.com/sidallocation/sidallocation.org/pull/56",
+  "registry_merged_at": "2026-11-19T18:45:13Z"
 }

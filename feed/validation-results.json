@@ -1,7 +1,7 @@
 {
   "suricata_version": "8.0.8 RELEASE",
-  "validated_at_utc": "2026-11-18T06:06:42.235664+00:00",
-  "rule_sha256": "a46e426fac93088cb31f42750b8378ff92cadd069e50a84512253555fe0dbc55",
+  "validated_at_utc": "2026-11-25T18:31:19.915856+00:00",
+  "rule_sha256": "e85b1385b419d5e3e4c0b691d3d1d46c9d933c6bc36f5b7382d3fcc57d5be8c6",
   "replay_address_groups": {
     "HOME_NET": "any",
     "EXTERNAL_NET": "any"

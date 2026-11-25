@@ -1,20 +1,20 @@
 # Pb-22 Open Suricata Feed
 
-Status: maintainer-authorized SID range; registry merge and OISF index listing pending
+The Pb-22 Open Suricata Feed provides independently maintained rules for network threat detection and hunting. Packet captures, documentation and reproducible validation support the rules in the feed.
 
-This directory contains the independently maintained Pb-22 Suricata feed. The feed is built from reviewed rules in this repository and is intended to become an optional source in the OISF Suricata Rule Index.
+## Source and SID allocation
 
-## Important current boundary
+The source identifier is `pb-22/open`. [SID allocation PR #56](https://github.com/sidallocation/sidallocation.org/pull/56) merged on November 19, 2026, allocating `9955000–9959999` to Pb-22. The current feed uses `9955000–9955003` and `9955009–9955010`.
 
-This feed uses SIDs `9955000-9955003` and WMI SIDs `9955009-9955010` within `9955000-9959999`. The registry maintainer [authorized use of the range](https://github.com/sidallocation/sidallocation.org/issues/55#issuecomment-6959202111) while [PR #56](https://github.com/sidallocation/sidallocation.org/pull/56) completes review. The OISF index entry is not yet accepted.
+[OISF request #45](https://github.com/OISF/suricata-intel-index/issues/45) tracks review for the Suricata Rule Index. [The prepared index entry](submissions/oisf-index-entry.yaml) supplies the source metadata and an 8.0.8 compatibility baseline.
 
-Rules that already belong to ET Open are intentionally excluded. Enabling this feed beside ET Open must not create duplicate ET SIDs.
+The feed contains independently published rules with unique SIDs and can be selected alongside ET Open.
 
 ## Subscription feed URL
 
 https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules
 
-The GitHub URL is sufficient for the initial feed and SID request. A matching `brimerica.com` feed URL can be added later without changing the rule source of record.
+The raw GitHub URL supplies the maintained rule file.
 
 ## Included rules
 
@@ -42,11 +42,13 @@ The generated feed passed:
 - one separate WMI encoding alert on the recovery-positive and wrong-interface captures, which retain that request from the source conversation;
 - no rule-loading warnings or errors.
 
-Machine-readable results are in `validation-results.json`. Replay address overrides are recorded there; use the monitored network's own address groups for deployment.
+[Validation results](validation-results.json) record the exact feed digest, engine version, address groups and alert counts for each replay. Configure address groups for the monitored network when selecting the feed.
 
-The [repository-wide SID map](sid-map.csv) lists all eleven independent rules and their previous IDs. Replace old local copies rather than loading both SID generations.
+The [SID map](sid-map.csv) lists the current and previous IDs for all eleven repository rules. Replace each previous SID generation with its mapped current rule.
 
-The map also distinguishes aggregate-feed membership: DCSync (`9955004`) and the Lua-backed EarthWorm group (`9955005-9955007`) remain in their individual directories, not in this six-rule aggregate. BPFDoor (`9955008`) remains commented out and disabled by default. WMI encoding (`9955009`) is included in the aggregate and documented in [its own package](../WMI/). Its sixteen-case table records six intended positives and one matching wrong-interface negative; the combined capture therefore produces seven alerts. Recovery inhibition (`9955010`) is included in the aggregate and documented in [its complete rule file](../WMI/T1490-Inhibit-System-Recovery/Suricata/). Its forty-one-case table preserves sixteen positives, twenty-four quiet negatives, and the matching wrong-interface negative. Lua-backed rules require the supporting scripts described in their package. Publishing this feed does not deploy it to a sensor or change its OISF index status.
+The aggregate selects the six rules in the table above. DCSync (`9955004`) and EarthWorm (`9955005–9955007`) have separate packages. EarthWorm uses the Lua scripts supplied with its package. BPFDoor (`9955008`) is commented out by default.
+
+[WMI encoding](../WMI/) documents sixteen cases, including six intended positives and a matching control with a different interface. The combined capture produces seven alerts. [Recovery inhibition](../WMI/T1490-Inhibit-System-Recovery/Suricata/) documents sixteen positives, twenty four quiet negatives and a matching control with a different interface. The retained results show the matching boundaries for both rules.
 
 ## Build
 
@@ -58,26 +60,26 @@ python3 tools/build_suricata_feed.py --check
 sha256sum --check feed/SHA256SUMS
 ```
 
-Edit `feed/source/pb22.rules`; do not hand-edit the generated `feed/suricata/pb22.rules`.
+Edit `feed/source/pb22.rules` and run the builder to regenerate `feed/suricata/pb22.rules` and its checksums.
 
 ## Installation
 
 Before OISF index acceptance, users can add the feed URL manually:
 
 ```text
-suricata-update add-source pb22 https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules
-suricata-update enable-source pb22
+suricata-update add-source pb-22/open https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules
+suricata-update enable-source pb-22/open
 suricata-update
 ```
 
-After OISF index acceptance, the intended source name is `pb22/open`:
+Once OISF lists the source, select `pb-22/open` from the refreshed index:
 
 ```text
 suricata-update update-sources
-suricata-update enable-source pb22/open
+suricata-update enable-source pb-22/open
 suricata-update
 ```
 
 ## License
 
-The feed files under `feed/` are licensed under BSD-3-Clause. This license does not claim ownership of third party reports or PDFs elsewhere in the repository.
+The feed files under `feed/` use the [BSD-3-Clause license](LICENSE).

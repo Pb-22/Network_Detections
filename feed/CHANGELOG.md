@@ -1,5 +1,12 @@
 # Feed changelog
 
+## November 25, 2026
+
+* Aligned the source identifier and installation examples to `pb-22/open`.
+* Recorded the merged SID allocation and an 8.0.8 compatibility baseline in the index entry.
+* Updated the generated feed status comment and refreshed all ten aggregate replay results against the exact file.
+* Preserved all six signatures and the existing download URL.
+
 ## 2026-11-18 — WMI combined recovery inhibition
 
 - Added standalone SID `9955010` revision 7 to the six-rule subscription feed, replacing private local SID `1000209` without changing matching logic.

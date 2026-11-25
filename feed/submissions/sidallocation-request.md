@@ -1,4 +1,8 @@
-# Request: SID range allocation for the Pb-22 Open Suricata feed
+# SID allocation
+
+[Allocation PR #56](https://github.com/sidallocation/sidallocation.org/pull/56) merged on November 19, 2026, assigning `9955000–9959999` to Pb-22. The maintained feed uses `pb-22/open` as its source identifier. [The current index entry](oisf-index-entry.yaml) contains the metadata for OISF review.
+
+## Original allocation request
 
 I maintain the public Network_Detections repository and am establishing an independently maintained Suricata feed:
 
