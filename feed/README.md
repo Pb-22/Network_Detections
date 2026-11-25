@@ -34,13 +34,13 @@ The generated feed passed:
 - deterministic build and checksum verification;
 - Suricata 8.0.8 `-T` syntax validation;
 - offline file replay with all six rules enabled;
-- zero alerts on the RedFlick fixture, confirming its ET-published rule is excluded;
+- zero alerts on the RedFlick control;
 - four Sliver hunting alerts on the retained proof capture;
 - one alert for each CAV3RN DNS branch;
 - one WMI encoding alert on the authentic execution and seven on the combined capture in both `single` and `autofp` modes;
-- one recovery-inhibition alert on the combined-action fixture in both `single` and `autofp` modes, zero on split actions, and one on the documented wrong-interface control;
-- one separate WMI encoding alert on the recovery-positive and wrong-interface captures, which retain that request from the source conversation;
-- no rule-loading warnings or errors.
+- one recovery inhibition alert on the combined action fixture in both `single` and `autofp` modes, zero on split actions and one on the documented control with a different interface;
+- one separate WMI encoding alert on the recovery positive and different interface captures, which retain that request from the source conversation;
+- clean rule loading with zero warnings or errors.
 
 [Validation results](validation-results.json) record the exact feed digest, engine version, address groups and alert counts for each replay. Configure address groups for the monitored network when selecting the feed.
 
@@ -49,6 +49,10 @@ The [SID map](sid-map.csv) lists the current and previous IDs for all eleven rep
 The aggregate selects the six rules in the table above. DCSync (`9955004`) and EarthWorm (`9955005–9955007`) have separate packages. EarthWorm uses the Lua scripts supplied with its package. BPFDoor (`9955008`) is commented out by default.
 
 [WMI encoding](../WMI/) documents sixteen cases, including six intended positives and a matching control with a different interface. The combined capture produces seven alerts. [Recovery inhibition](../WMI/T1490-Inhibit-System-Recovery/Suricata/) documents sixteen positives, twenty four quiet negatives and a matching control with a different interface. The retained results show the matching boundaries for both rules.
+
+## Source acquisition
+
+[Acquisition results](acquisition-results.json) record an isolated source test with suricata-update 1.3.8 and Suricata 8.0.8. The updater fetched `pb-22/open` from the published URL and preserved all six feed signatures. Suricata loaded the merged file with six feed rules and 384 distribution rules, for 390 rules total. Rule loading completed with zero failures and zero skipped rules.
 
 ## Build
 

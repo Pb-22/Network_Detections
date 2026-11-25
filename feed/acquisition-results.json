@@ -1,0 +1,31 @@
+{
+  "source_identifier": "pb-22/open",
+  "tested_at_utc": "2026-11-25T18:35:49.759845+00:00",
+  "suricata_update_version": "1.3.8",
+  "suricata_version": "8.0.8 RELEASE",
+  "feed_url": "https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules",
+  "feed_sha256": "e85b1385b419d5e3e4c0b691d3d1d46c9d933c6bc36f5b7382d3fcc57d5be8c6",
+  "feed_rules_acquired": 6,
+  "feed_sids": [
+    9955000,
+    9955001,
+    9955002,
+    9955003,
+    9955009,
+    9955010
+  ],
+  "feed_signatures_preserved": true,
+  "merged_rules_loaded": 390,
+  "included_distribution_rules": 384,
+  "rule_load_failures": 0,
+  "rule_load_skips": 0,
+  "acquisition_exit": 0,
+  "suricata_test_exit": 0,
+  "reload_performed": false,
+  "commands": [
+    "suricata-update --data-dir /data add-source pb-22/open https://raw.githubusercontent.com/Pb-22/Network_Detections/main/feed/suricata/pb22.rules",
+    "suricata-update --data-dir /data update-sources",
+    "suricata-update --data-dir /data --force --no-reload --no-test --fail",
+    "suricata -T -v -c /etc/suricata/suricata.yaml -S /data/rules/suricata.rules -l /data/engine-final --set sgh-mpm-caching-path=/data/hyperscan-cache"
+  ]
+}
