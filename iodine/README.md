@@ -44,7 +44,7 @@ The baseline client and server are `10.205.0.3` and `10.205.0.2`, using the lab 
 
 ## Replay with the session recognizer
 
-Use Zeek 9.0.1 and the iodine session recognizer that emits `Iodine::CompatibleSession`. Its runtime consists of `main.zeek`, `state.zeek`, and `wire.zeek`; keep those files together. This capture directory supplies the test inputs and recorded results. The detector is a separate prerequisite, and its exact source hashes are in [validation.json](validation.json).
+Use Zeek 9.0.1 and the [iodine session recognizer](https://github.com/Pb-22/zeek-detections/tree/main/scripts/iodine) that emits `Iodine::CompatibleSession`. Its runtime consists of `main.zeek`, `state.zeek`, and `wire.zeek`; keep those files together. The [source and replay guide](https://github.com/Pb-22/zeek-detections/blob/main/docs/iodine.md) gives the checkout and capture replay steps. Exact tested source hashes are in [validation.json](validation.json).
 
 From the root of this repository, set `SCRIPT` to the absolute path of the detector entry point:
 
