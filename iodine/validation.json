@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "scope": "Five selected iodine capture replays; native captures and derived controls are identified per file.",
+  "engine": "Zeek 9.0.1",
+  "engine_image": "zeek/zeek@sha256:524cb0ce29f26a6a954fb9c357a8f92b95812476d8240f0ece26617ace249dd0",
+  "detector_entry": "main.zeek",
+  "detector_sources_sha256": {
+    "main.zeek": "04fa379f0e8ebbdc81c356b12cc97588788c63361c3814216eb265c5a4294144",
+    "state.zeek": "fbc1b93cb66b2c5026ccaac8f3da69d98dd39275d3d1c7d9892daefac9f0e0ca",
+    "wire.zeek": "4f3e52174c598b7682f6eb7958656d861886195d4db6b0a55af831fc104f7f97"
+  },
+  "notice_message": "iodine session pattern observed: matched negotiation followed by two way tunnel traffic",
+  "iodine_source_commit": "7160bbe1c98c74bf34a8b97ed8c1540950ebb243",
+  "capture_count": 5,
+  "passed": 5,
+  "captures": [
+    {
+      "file": "pcap/iodine-dns-positive-complete-session.pcap",
+      "origin": "native",
+      "description": "Complete DNS tunnel session using NULL replies, Base128 upstream and Raw downstream.",
+      "packets": 66,
+      "bytes": 18947,
+      "sha256": "0e0d97d83f56e47a27f0c6e85b61e55f548af0277c5eb8d966744bfa7fad2639",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "Iodine::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "packet_truncation_count": 0,
+      "source_wire_evidence": "PASS",
+      "observed_endpoints": [
+        "10.205.0.2",
+        "10.205.0.3"
+      ],
+      "source_case": "P01_DNS_BASELINE",
+      "standalone_replay": {
+        "command_form": "zeek -C -r CAPTURE SCRIPT",
+        "observed_notices": 1,
+        "engine_exit": 0,
+        "engine_stderr_bytes": 0
+      }
+    },
+    {
+      "file": "pcap/iodine-raw-udp-positive-complete-session.pcap",
+      "origin": "native",
+      "description": "DNS negotiation followed by the native Raw UDP transport.",
+      "packets": 33,
+      "bytes": 3395,
+      "sha256": "2b5a2c934d19362150f75d085bcbfda8d85a58748b6207793d6422ef04a8650f",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "Iodine::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "packet_truncation_count": 0,
+      "source_wire_evidence": "PASS",
+      "observed_endpoints": [
+        "10.205.0.2",
+        "10.205.0.3"
+      ],
+      "source_case": "P00_RAW_BASELINE",
+      "standalone_replay": {
+        "command_form": "zeek -C -r CAPTURE SCRIPT",
+        "observed_notices": 1,
+        "engine_exit": 0,
+        "engine_stderr_bytes": 0
+      }
+    },
+    {
+      "file": "pcap/iodine-dns-positive-fragmented-session.pcap",
+      "origin": "native",
+      "description": "Complete DNS tunnel session with seven upstream and five downstream fragments.",
+      "packets": 57,
+      "bytes": 8130,
+      "sha256": "64f68f962df09af06bc34998782102cd741fc20fbf323a9a4f8179d0c7c1301e",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "Iodine::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "packet_truncation_count": 0,
+      "source_wire_evidence": "PASS",
+      "observed_endpoints": [
+        "10.207.0.2",
+        "10.207.0.3"
+      ],
+      "source_case": "P14_FRAGMENTED",
+      "standalone_replay": {
+        "command_form": "zeek -C -r CAPTURE SCRIPT",
+        "observed_notices": 1,
+        "engine_exit": 0,
+        "engine_stderr_bytes": 0
+      }
+    },
+    {
+      "file": "pcap/iodine-dns-negative-negotiation-only.pcap",
+      "origin": "derived_control",
+      "description": "Retains version and login negotiation; tunnel data is absent.",
+      "packets": 6,
+      "bytes": 798,
+      "sha256": "2ebfd458ad4c763c6fc41209f5e0479144f23e2882fadb94d1b6ccf7199a1b14",
+      "expected_notices": 0,
+      "observed_notices": 0,
+      "notice_type": "Iodine::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "packet_truncation_count": 0,
+      "source_wire_evidence": "PASS",
+      "observed_endpoints": [
+        "10.205.0.2",
+        "10.205.0.3"
+      ],
+      "source_case": "N_LOGIN_ONLY",
+      "derived_from_sha256": "0e0d97d83f56e47a27f0c6e85b61e55f548af0277c5eb8d966744bfa7fad2639",
+      "transformation": "Retain version/login negotiation and no tunnel data",
+      "standalone_replay": {
+        "command_form": "zeek -C -r CAPTURE SCRIPT",
+        "observed_notices": 0,
+        "engine_exit": 0,
+        "engine_stderr_bytes": 0
+      }
+    },
+    {
+      "file": "pcap/iodine-dns-negative-upstream-data-only.pcap",
+      "origin": "derived_control",
+      "description": "Retains negotiation, upstream data and downstream ACK headers; downstream compressed data bodies are removed.",
+      "packets": 55,
+      "bytes": 17882,
+      "sha256": "6a5484f364698151718f8e3aa2680160a1e9fb784cbb512c4fb0ad256ecae866",
+      "expected_notices": 0,
+      "observed_notices": 0,
+      "notice_type": "Iodine::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "packet_truncation_count": 0,
+      "source_wire_evidence": "PASS",
+      "observed_endpoints": [
+        "10.205.0.2",
+        "10.205.0.3"
+      ],
+      "source_case": "N_DNS_ONE_DIRECTION",
+      "derived_from_sha256": "0e0d97d83f56e47a27f0c6e85b61e55f548af0277c5eb8d966744bfa7fad2639",
+      "transformation": "Retain all handshake and upstream data; remove all downstream compressed data bodies but preserve two-byte ACKs",
+      "standalone_replay": {
+        "command_form": "zeek -C -r CAPTURE SCRIPT",
+        "observed_notices": 0,
+        "engine_exit": 0,
+        "engine_stderr_bytes": 0
+      }
+    }
+  ]
+}
