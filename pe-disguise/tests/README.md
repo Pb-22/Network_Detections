@@ -1,11 +1,10 @@
 # Focused synthetic tests
 
-These tests construct **inert PE header models** and wrap them in deterministic,
-checksum-correct **synthetic Ethernet/IPv4/TCP/HTTP PCAPs**. They are not native
-captures, loader-valid programs, malware specimens, or vendor fixtures. The
-models contain no entry point, executable section flags, instructions, or DOS
-stub. The ZIP control contains only a generated model named `report.pdf`.
-Nothing is downloaded by the test scripts.
+The tests generate inert PE header models, place them in synthetic HTTP traffic
+and replay the PCAPs through Zeek. Packet bytes are deterministic and have valid
+IP and TCP checksums. The models contain no entry point, executable section
+flags, instructions or DOS stub. The ZIP control contains only a generated
+model named `report.pdf`. The scripts do not download specimens or vendor files.
 
 ## Run
 
@@ -24,20 +23,19 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s pe-disguise/tests -p t
 python3 pe-disguise/tests/run-tests.py --output '/absolute/path/outside/repository/fresh test results'
 ```
 
-The output directory **must not exist** and must be outside the repository.
-The runner resolves source paths relative to its own location; the current
-working directory and checkout name do not matter. Docker runs with the host
-UID/GID, `--pull=never`, `--network=none`, a read-only root filesystem, no
-capabilities, no-new-privileges, a read-only package mount, and only the explicit
-results mount writable. It needs no packet-capture privileges or `NET_RAW`.
-No packages or images are installed automatically. Engine invocations time out
-after 120 seconds each.
+Choose a new output directory outside the repository. The runner resolves
+source paths relative to its own location, so the checkout name and working
+directory do not matter. Docker uses the host UID/GID with `--pull=never` and
+`--network=none`. It cannot write to the container root or package files, has no
+capabilities and uses `no-new-privileges`. Only the results mount accepts writes.
+The tests need no packet capture privileges or `NET_RAW`. They do not install
+packages or images. Each engine invocation has a 120 second timeout.
 
 An installed Zeek can be selected with `--zeek /path/to/zeek`; the pinned Docker
 image is the reproducible reference environment. The runner loads the exact
 public `Zeek/main.zeek`, which loads `pe.zeek` and then `filename.zeek`; it never
 replaces those policy files. `base/protocols/conn` is loaded for identity checks.
-All observer scripts are **test only**, not deployment dependencies.
+The tests use the observer scripts; the detector runs without them.
 
 Generate PCAPs without replaying them:
 
@@ -47,38 +45,39 @@ python3 pe-disguise/tests/generate_fixtures.py --output '/absolute/path/outside/
 
 ## Coverage and assertions
 
-There are **28 HTTP cases**, with **9 expected Notices**, and **8 primitive
-filename-precedence probes**. The runner requires exact aggregate counts.
+The suite has 28 HTTP cases with 9 expected Notices and 8 filename probes.
+The runner checks the exact counts.
 
-- PE32 x86, PE32+ x64 and ARM64 header-model positives.
-- Extended `filename*` selection over empty, path-shaped and unsupported legacy
+- PE32 x86, PE32+ x64 and ARM64 header models that should produce Notices.
+- Extended `filename*` selection over empty, path and unsupported legacy
   fallback bytes, plus reverse parameter order.
 - Active invalid UTF-8/language, duplicate parameters, selected paths,
   unsupported charset and unknown disposition abstentions.
 - Bad PE signature, raw section past EOF, honest `.exe`/`.dll` filename controls,
-  an outer ZIP containing a model named `.pdf`, and non-PE data.
+  an outer ZIP containing a model named `.pdf`, and data without PE headers.
 - Short response versus Content-Length, range response, chunked transfer,
-  Content-Type filename poisoning, URI-only naming, duplicate disposition and
+  Content-Type filename poisoning, names supplied only in the URI, duplicate disposition and
   duplicate Content-Length controls; explicit identity encoding positive.
-- A 1 MiB inert overlay positive exercises prefix-only parsing and analyzer
-  detachment while independent STREAM and CHUNK companions continue receiving
-  the entire object.
+- A model with a 1 MiB inert overlay checks that the detector reads the prefix
+  and removes its own analyzer while the independent STREAM and CHUNK consumers
+  still receive the entire object.
 
 For every case the runner checks the real Zeek HTTP/connection/file records,
 UID/FUID linkage, reserved peers and ports, HTTP and file byte counts, exact
 Notice cardinality, and zero final active contexts, retained prefix bytes and
 admission drops. Positive Notices require exact parsed evidence fields
 (filename hex, format, observed/declared bytes, peers, UID and FUID), complete
-file length, zero missing/overflow bytes, no file timeout, the exact Notice message, and a timestamp no earlier than the final response-body packet and
+file length, zero missing or overflow bytes, no file timeout, the exact Notice
+message, and a timestamp no earlier than the final packet carrying response data and
 no later than capture end. Both companions must receive every modeled object
 byte with matching FUIDs; CHUNK offsets must be contiguous.
 
-The long-overlay case additionally requires at most four detector callbacks,
+The `long-overlay` case also requires at most four detector callbacks,
 callback bytes below one eighth of the body, exactly 416 peak retained prefix
 bytes, and at least 100 callbacks in each unaffected companion. All cases cap
 peak retained prefix at 432 bytes, the largest generated header table.
 `test_harness.py` independently checks model construction, deterministic PCAP
-bytes, IP/TCP checksums, the three-way handshake and two-sided FIN teardown.
+bytes, IP/TCP checksums, the TCP handshake and FIN teardown from both peers.
 Packet timestamps are fixed; endpoints are reserved documentation addresses.
 
 `summary.json`, `commands.json`, fixture hashes, actual engine stdout/stderr,
@@ -88,15 +87,18 @@ and retains its partial evidence; rerun into a different fresh directory.
 
 ## Scope limits
 
-This compact suite is not a publication of a larger private battery, and is not
-an independent proof of PE loader validity or arbitrary real-network behavior.
-The detection profile targets the first outer HTTP response file, status 200,
-identity representation, one Content-Length and Content-Disposition, with no
-range, transfer coding or multipart. Unsupported/ambiguous metadata is an
-abstention, not evidence that content is benign. The modeled filename and PE
-header cases exercise selected policy constraints, not complete RFC or PE/COFF
-conformance. They do not cover TLS decryption, packet loss, adversarial TCP
-reassembly, arbitrary concurrency, MIME nesting or every resource limit.
+This suite checks selected filename and PE header rules under a defined HTTP
+profile: one outer response file, status 200, identity representation, one
+Content-Length and one Content-Disposition field. Range responses, transfer
+coding and multipart bodies stay outside that profile. The detector skips
+unsupported or ambiguous metadata; that decision does not establish that the
+content is benign.
+
+Broader private evaluations are separate from this public suite. These models
+do not establish PE loader validity, complete RFC conformance or behavior on
+arbitrary network traffic. TLS decryption, packet loss, adversarial TCP
+reassembly, arbitrary concurrency, MIME nesting and other resource limits need
+separate tests.
 
 Relevant format references: [PE/COFF](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format),
 [RFC 6266](https://www.rfc-editor.org/rfc/rfc6266),

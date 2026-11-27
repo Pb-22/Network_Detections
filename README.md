@@ -8,25 +8,25 @@ Where useful, links to the original articles or local PDF copies may be included
 
 If you want to test these detections yourself, you may find tools like **Suricata Bench** useful for Suricata rules and **zeek-try-cluster** useful for Zeek scripts.
 
-Current EarthWorm-related directories:
+EarthWorm directories:
 
-- `Earthworm/` — base reverse-SOCKS handshake and request-stage detection material
-- `Pygmy-Goat-Earthworm/` — pool-number follow-on with `ew-test-07` through `ew-test-10`
+- `Earthworm/`: detection material for reverse SOCKS handshakes and requests.
+- `Pygmy-Goat-Earthworm/`: followup detection for the pool number, with `ew-test-07` through `ew-test-10`.
 
 Additional detection packages:
 
 - [`RedFlick/`](RedFlick/): published ET Open check in and User-Agent rules, synthetic PCAP, and visual explainer.
 - [`DCSync/`](DCSync/): DRSUAPI replication detection, authentic lab captures, and packet walkthrough.
-- [`WMI/`](WMI/): WMI command-output encoding and combined recovery-inhibition rules, positive/negative captures, and replay results.
+- [`WMI/`](WMI/): rules for encoded WMI command output and combined recovery inhibition, positive and negative captures, and replay results.
 - [`Certipy/`](Certipy/): certificate authentication packet evidence, including [PKINIT-U2U](Certipy/PKINIT-U2U/). Its maintained detector and replay suite are in [Pb-22/zeek-detections](https://github.com/Pb-22/zeek-detections).
 - [`iodine/`](iodine/): native DNS and Raw UDP tunnel captures, a fragmentation test, and two negative controls with expected Zeek Notice results.
-- [`pe-disguise/`](pe-disguise/): a bounded Zeek PE/document-name mismatch detector with portable fixture generation and replay tests.
+- [`pe-disguise/`](pe-disguise/): a Zeek detector for PE files advertised as documents or images, with scripts to generate fixtures and run the tests.
 
 ## Pb-22 Open Suricata feed
 
-The independent feed is documented under [`feed/`](feed/). It contains six fixture-backed rules, deterministic generation, checksums, Suricata 8 validation results, feed-specific BSD-3-Clause licensing, and SID allocation and OISF index submission material.
+The independent feed is documented under [`feed/`](feed/). It contains six rules with test fixtures, deterministic generation, checksums, Suricata 8 validation results, a BSD-3-Clause license for the feed, and SID allocation and OISF index submission material.
 
-The downloadable feed uses SIDs `9955000-9955003` and WMI SIDs `9955009-9955010` within the maintainer-authorized `9955000-9959999` range. The [repository-wide SID map](feed/sid-map.csv) also lists DCSync and the Lua-backed EarthWorm rules in their individual directories, plus disabled-by-default BPFDoor SID `9955008`. These additional rules are not automatically included in the aggregate feed. RedFlick is supplied by ET Open and is excluded from this independent feed. Registry PR review and OISF index listing are separate from permission to use the range.
+The downloadable feed uses SIDs `9955000-9955003` and WMI SIDs `9955009-9955010` within the `9955000-9959999` range authorized by the maintainer. The [repository SID map](feed/sid-map.csv) also lists DCSync and the EarthWorm rules that use Lua in their individual directories, plus BPFDoor SID `9955008`, which is disabled by default. These additional rules are not automatically included in the aggregate feed. ET Open supplies RedFlick, so this independent feed excludes it. Registry PR review and OISF index listing are separate from permission to use the range.
 
 Subscription feed URL:
 

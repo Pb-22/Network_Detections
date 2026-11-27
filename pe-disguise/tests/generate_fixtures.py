@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate inert header MODELS in checksum-correct SYNTHETIC HTTP/TCP PCAPs.
+"""Generate inert header models in synthetic HTTP/TCP PCAPs with valid checksums.
 
 No specimens, executable code, native captures, external files or downloads.
-The PE objects model selected header constraints, not loader-valid programs.
+The PE objects model selected header constraints, not programs Windows can load.
 """
 import argparse
 import hashlib

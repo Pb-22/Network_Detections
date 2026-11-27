@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Replay 28 generated SYNTHETIC fixture cases through Zeek and check real logs.
 
-Python standard library only. Docker is offline, read-only, unprivileged and
-pinned to Zeek 9.0.1; --zeek optionally selects an installed local binary.
+Uses the Python standard library. Docker has no network access, uses an
+unprivileged account and cannot write to its root filesystem. The image pins
+Zeek 9.0.1; --zeek selects an installed local binary instead.
 """
 import argparse
 import hashlib

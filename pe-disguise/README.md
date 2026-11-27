@@ -2,16 +2,16 @@
 
 This Zeek detector reports a complete HTTP download when its selected Content-Disposition filename claims a document or image but its outer bytes contain coherent PE structure. It emits PEFileDisguise::DocumentImageMismatch in notice.log.
 
-The finding identifies a file format and advertised-name mismatch. It does not establish maliciousness or execution.
+The finding means the file bytes and advertised filename do not agree. Treat it as a file delivery signal, not proof that malware ran.
 
 ## Layout
 
-- Zeek/main.zeek: HTTP/file association, completion checks and Notice emission.
-- Zeek/filename.zeek: bounded Content-Disposition, UTF-8 and language-tag parsing.
+- Zeek/main.zeek: associates files with HTTP responses, checks completion and emits Notices.
+- Zeek/filename.zeek: parses Content-Disposition, UTF-8 and language tags within fixed limits.
 - Zeek/pe.zeek: bounded PE32/PE32+ structure checks.
-- tests/: portable fixture generation, replay checks and resource/coexistence observers.
+- tests/: generates fixtures, runs replays and checks resource use and other analyzers.
 
-Keep the three Zeek files together. The runtime does not read test fixtures or use vendor, address or payload-hash allowlists.
+Keep the three Zeek files together. The detector examines observed response headers and file bytes. It does not identify files through test fixtures or lists of vendors, addresses or payload hashes.
 
 ## Replay a capture
 
@@ -44,9 +44,9 @@ docker pull zeek/zeek@sha256:524cb0ce29f26a6a954fb9c357a8f92b95812476d8240f0ece2
 python3 pe-disguise/tests/run-tests.py --output ../pe-disguise-test-output
 ```
 
-Run --help for the supported options. Keep replay output outside the source directories. Container replays have no network, a read-only root and bounded resources. The tests validate positive and negative findings, filename selection, file/transaction evidence, incomplete-body abstention and analyzer coexistence. The public focused suite is distinct from broader private artifact evaluations.
+Run --help for the options and keep replay output outside the source directories. The containers have no network access and cannot write to their root filesystem. The tests check expected findings, filename selection, file and HTTP evidence, handling of incomplete bodies, and whether other analyzers still receive the data. Broader private artifact evaluations are separate from this public suite.
 
-The checked public suite contains 28 synthetic HTTP cases with 9 expected Notices, plus 8 filename probes. Both standard-library unit tests and the full pinned-engine replay pass. See validation.json for the source identities, fixture hashes and actual per-case results.
+The public suite passes 28 synthetic HTTP cases with 9 expected Notices and 8 filename probes. The two Python unit tests also pass. See validation.json for the source hashes, fixture hashes and results for each case.
 
 The optional tests/measure-engine.py helper records one engine child's CPU, wall time and Linux peak RSS per fresh wrapper. Use it inside a Linux container, not around docker run. It does not prove live throughput or a production false positive rate. No benchmark or raw runtime output is committed by default.
 
@@ -54,27 +54,27 @@ The optional tests/measure-engine.py helper records one engine child's CPU, wall
 
 The first profile requires:
 
-- One top-level responder file from a status 200 HTTP response.
-- One valid meaningful Content-Disposition filename using attachment or inline. A valid UTF-8 filename* wins over an unused plain fallback, regardless of parameter order. Plain names support ASCII or well-formed UTF-8; other unlabelled legacy octets abstain. Optional language syntax follows RFC 5646 without a registry lookup.
+- One outer responder file from a status 200 HTTP response.
+- One valid Content-Disposition field with a usable filename, using attachment or inline. A valid UTF-8 filename* takes precedence over an unused plain fallback, regardless of parameter order. Plain names support ASCII or valid UTF-8; the detector skips other unlabelled legacy encodings. Optional language syntax follows RFC 5646 without a registry lookup.
 - A final ASCII document/image suffix: pdf, doc, docx, xls, xlsx, ppt, pptx, rtf, odt, ods, odp, jpg, jpeg, png, gif, bmp, tif, tiff, webp or svg.
 - Identity encoding, one valid Content-Length, complete observed bytes and clean native file/HTTP completion.
 - Exact MZ/NT signatures, a supported machine/magic pairing, bounded coherent optional/header/section tables and section raw spans inside the complete object. I386, AMD64 and ARM64 are supported. Legitimate overlays are allowed.
 
-The byte checks indicate PE structure; they are not a Windows loader, disassembler or Authenticode validator. Ordinary executable/DLL/CPL and generic binary names do not qualify. An outer ZIP containing PE stays outside the signal. URI-only names and Content-Type name do not override the selected response filename.
+The byte checks identify PE structure. They do not validate Windows loading, instructions or Authenticode signatures. Ordinary executable, DLL, CPL and generic binary names do not qualify. A ZIP containing PE also stays outside the signal. A filename in the URI or Content-Type name cannot replace the selected response filename.
 
 ## Bounds and known misses
 
-Fixed source limits are 64 KiB prefix per file, 128 active contexts, 4 KiB header values, 255 filename bytes, 16 parameters, 96 sections and 256 MiB declared object length. They are source constants, not promised command-line redefinition options.
+Fixed source limits are 64 KiB prefix per file, 128 active contexts, 4 KiB header values, 255 filename bytes, 16 parameters, 96 sections and 256 MiB declared object length. Change these constants in the source rather than through CLI options.
 
-Ambiguous/invalid metadata, unqualified decoding, transfer encodings, ranges, multipart bodies, incomplete visibility and objects outside those bounds abstain. At saturation, additional eligible files can be skipped; admission_drops in the exported health record counts those decisions. A 129-flow test with the 128-context cap intentionally skips one file. These are explicit coverage limits, not zero false-negative guarantees.
+The detector skips ambiguous or invalid metadata, unqualified decoding, transfer encodings, ranges, multipart bodies, incomplete objects and files outside those bounds. It can also skip eligible files when all contexts are occupied. The exported admission_drops counter records those decisions. In a capacity test with 129 eligible files at once, the 128 context limit caused one file to be skipped. These limits can cause missed detections.
 
 Encrypted traffic without visible HTTP bodies is outside the detector. Stock Zeek 9.0.1 is the verified runtime; other Zeek releases and vendor builds, including Corelight, require their own compatibility and visibility checks. Native Windows Update/updater behavior and production selectivity have not been qualified.
 
 ## Resource behavior
 
-The detector copies only the required DOS, COFF, optional-header and section-table prefix extents. Once classification is resolved, it removes only its exact DATA_EVENT callback instance. Separate stream and chunk consumers remain attached and receive full data. Already queued callbacks can still arrive. Positive Notices still wait for both file and HTTP completion.
+The detector copies only the bytes needed for the DOS header, COFF header, optional header and section table. After it classifies the prefix, it removes only its own DATA_EVENT callback. Other stream and chunk consumers remain attached and receive the full data. Callbacks already in the queue can still arrive. Positive Notices wait for both file and HTTP completion.
 
-Terminal timeout/gap/overflow rejection releases owned budgets immediately and idempotently. Health counters describe this detector's owned state, not total Zeek or other policy memory. Reduced callback work and smaller prefix buffers should not be read as an equal percentage reduction in whole-process RSS.
+A file timeout, gap or overflow causes the detector to release its state immediately. Later callbacks cannot release it twice. Health counters measure this detector's state, not all memory used by Zeek or other policies. Smaller buffers and fewer callbacks do not imply the same reduction in total process RSS.
 
 ## References
 
