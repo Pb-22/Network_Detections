@@ -36,6 +36,11 @@ case IDs and expected results, and validation.json for the actual replay results
 The combined script can also be used by itself when available. Use either the
 combined script or the three original files, rather than loading both forms.
 
+The three original files were also verified together here:
+https://try.zeek.org/#/tryzeek/saved/0a2917bb9b014a178579f023412ecc55
+
+Upload the primary PCAP if no capture is selected.
+
 ## Provenance and expected outcomes
 
 All 28 files are deterministic synthetic Ethernet, IPv4, TCP and HTTP fixtures.
