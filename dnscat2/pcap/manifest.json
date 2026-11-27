@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "scope": "Six ready endpoint anonymized PCAP derivatives of accepted native dnscat2 lab traffic",
+  "primary_capture": "pcap/dnscat2-txt-positive-complete-session.pcap",
+  "transform_tool": {
+    "name": "prepare_derivatives.py",
+    "sha256": "b863b5cfdad05750762ffe1ef4deacb80c1c9f11c2091cea4c3e885fedf51ac4",
+    "scapy_version": "2.6.1"
+  },
+  "captures": [
+    {
+      "file": "pcap/dnscat2-txt-positive-complete-session.pcap",
+      "source_case": "D_TXT_A",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic",
+      "native_input_sha256": "38fc40dfa5677b39b2716de0d2d3946a3782db1729e03c8b70cd031d7ac5d500",
+      "sha256": "916140a229b5e519a1ad00924ce464bfa9c87b7c3c0f0e5223d47600606f3120",
+      "bytes": 4348,
+      "frames": 27,
+      "layer_counts": {
+        "IPv6": 4,
+        "ICMPv6": 4,
+        "ARP": 7,
+        "IPv4": 16,
+        "UDP": 16
+      },
+      "expected_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently."
+    },
+    {
+      "file": "pcap/dnscat2-cname-positive-complete-session.pcap",
+      "source_case": "D_CNAME_A",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic",
+      "native_input_sha256": "c81b513eae8dbfb4108351de75e494a2c0a12aabb37ac55bfbabbdb3fe37cd3b",
+      "sha256": "01f45c728dee26bbe9d82512f9d4195e2c1f583e0bcf89947893d07afe944393",
+      "bytes": 4452,
+      "frames": 26,
+      "layer_counts": {
+        "IPv6": 3,
+        "ICMPv6": 3,
+        "ARP": 7,
+        "IPv4": 16,
+        "UDP": 16
+      },
+      "expected_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently."
+    },
+    {
+      "file": "pcap/dnscat2-mx-positive-complete-session.pcap",
+      "source_case": "D_MX",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic",
+      "native_input_sha256": "1a5e08b9fa101310aba46f0cc5411138da8cc64f34e40708ad3209f53f45a01e",
+      "sha256": "8c752d605eb22c5336c14cd8d9e22200ef82f4b750d87e045b01c26f3ea5aa7a",
+      "bytes": 4348,
+      "frames": 26,
+      "layer_counts": {
+        "IPv6": 3,
+        "ICMPv6": 3,
+        "ARP": 7,
+        "IPv4": 16,
+        "UDP": 16
+      },
+      "expected_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently."
+    },
+    {
+      "file": "pcap/dnscat2-a-positive-complete-session.pcap",
+      "source_case": "D_A",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic",
+      "native_input_sha256": "fce36cc2a813c662eb9b1e553afd8fa34b7e10378e25deb7797427620a482b77",
+      "sha256": "a4f262d20722b806c5b5a8f3093dce18489af32da91b3f765fb6e77a3f6b977f",
+      "bytes": 5496,
+      "frames": 29,
+      "layer_counts": {
+        "IPv6": 6,
+        "ICMPv6": 6,
+        "ARP": 7,
+        "IPv4": 16,
+        "UDP": 16
+      },
+      "expected_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently."
+    },
+    {
+      "file": "pcap/dnscat2-aaaa-positive-complete-session.pcap",
+      "source_case": "D_AAAA",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic",
+      "native_input_sha256": "ae9ec6327a8f85505e83725be80003112122040baaeb8e192aa13378ce3afcef",
+      "sha256": "0e0122f89bde607d019940fa32e8d2c039d3ea4c376fe9a5e9a9b7c2e6866d7d",
+      "bytes": 4540,
+      "frames": 29,
+      "layer_counts": {
+        "IPv6": 6,
+        "ICMPv6": 6,
+        "ARP": 7,
+        "IPv4": 16,
+        "UDP": 16
+      },
+      "expected_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently."
+    },
+    {
+      "file": "pcap/dnscat2-negative-inconsistent-reply-session-ids.pcap",
+      "source_case": "NEG_N7",
+      "origin": "derived_from_native_lab_traffic",
+      "provenance": "Endpoint anonymized derivative of native encrypted lab traffic; original negative is a constructed mutation of native derived DNS with inconsistent reply session IDs",
+      "native_input_sha256": "a94fed9accb5db2727f86ae547dbfbc458c5b2d99c900b5a4f17ae5e990c4f19",
+      "sha256": "0f347d47bf4926fcf8019ba119a056f1dd8597e05617a1626de8483273a0654d",
+      "bytes": 3769,
+      "frames": 14,
+      "layer_counts": {
+        "IPv4": 14,
+        "UDP": 14
+      },
+      "expected_notices": 0,
+      "notice_type": "DNScat2::CompatibleSession",
+      "upstream_version": "v0.07",
+      "upstream_revision": "42f8d783488836c0e24ff25571684170be0a0cc2",
+      "transform": "Role preserving RFC 5737 IPv4, RFC 3849 IPv6 and locally administered MAC endpoint replacement; matching ARP and IPv6 control address fields updated; IPv4 and transport checksums recomputed; timestamps, frame order, frame lengths and complete DNS payload bytes unchanged. Protocol multicast and unspecified addresses retained except address derived solicited node membership groups mapped consistently.",
+      "negative_derivation": {
+        "predicate": "Inconsistent reply session IDs",
+        "original_native_baseline_sha256": "eb08c80f4c96e0f53f22a678503dab5b9f75bbd64d939c362250be6e25381499",
+        "intermediate_negative_sha256": "a94fed9accb5db2727f86ae547dbfbc458c5b2d99c900b5a4f17ae5e990c4f19",
+        "stages": [
+          "Constructed mutation of native derived DNS changes reply session IDs",
+          "Endpoint anonymization and checksum repair preserve the intermediate DNS payload bytes exactly"
+        ]
+      }
+    }
+  ]
+}

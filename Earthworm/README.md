@@ -34,3 +34,6 @@ These are the existing published test captures, retained without rewriting
 packet bytes. They exercise the source patterns; a match is not proof of a
 particular operator or an authentic malware execution. The
 [packet descriptions](PCAPs/PCAP_Description.md) explain the scenarios.
+
+The [reader notes](../website-notes/Earthworm/Zeek_Script.json) accompany the
+extracted source and explain each detection step at its matching source range.

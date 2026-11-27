@@ -14,6 +14,8 @@ The finding means the file bytes and advertised filename do not agree. Treat it 
 
 Keep the three Zeek files together. The detector examines observed response headers and file bytes. It does not identify files through test fixtures or lists of vendors, addresses or payload hashes.
 
+The matching reader notes are kept beside this source in [website-notes](../website-notes/pe-disguise/Zeek/): [main](../website-notes/pe-disguise/Zeek/main.json), [filename selection](../website-notes/pe-disguise/Zeek/filename.json) and [PE checks](../website-notes/pe-disguise/Zeek/pe.json). They explain the individual source steps and link calls to the helper definitions used by the detector.
+
 ## Replay a capture
 
 With stock Zeek 9.0.1 available, run this from the repository root:

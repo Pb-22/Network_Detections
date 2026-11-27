@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "engine": "Zeek 9.0.1",
+  "engine_image": "zeek/zeek@sha256:524cb0ce29f26a6a954fb9c357a8f92b95812476d8240f0ece26617ace249dd0",
+  "source_repository": "Pb-22/zeek-detections",
+  "source_commit": "36171b8a3ac997a726969da15e655253f0d82fff",
+  "detector_sources_sha256": {
+    "scripts/dnscat2/main.zeek": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3"
+  },
+  "source_closure": "Single main entry with standard Zeek Notice framework; optional finite adapter omitted",
+  "replay_isolation": {
+    "network": "none",
+    "user": "1000:1000",
+    "root_filesystem": "read_only",
+    "input_mount": "read_only",
+    "source_mount": "read_only",
+    "capabilities": "all_dropped"
+  },
+  "capture_count": 6,
+  "passed": 6,
+  "expected_notices_total": 5,
+  "observed_notices_total": 5,
+  "captures": [
+    {
+      "file": "pcap/dnscat2-txt-positive-complete-session.pcap",
+      "sha256": "916140a229b5e519a1ad00924ce464bfa9c87b7c3c0f0e5223d47600606f3120",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 27,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 36
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    },
+    {
+      "file": "pcap/dnscat2-cname-positive-complete-session.pcap",
+      "sha256": "01f45c728dee26bbe9d82512f9d4195e2c1f583e0bcf89947893d07afe944393",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 26,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 35
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    },
+    {
+      "file": "pcap/dnscat2-mx-positive-complete-session.pcap",
+      "sha256": "8c752d605eb22c5336c14cd8d9e22200ef82f4b750d87e045b01c26f3ea5aa7a",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 26,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 35
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    },
+    {
+      "file": "pcap/dnscat2-a-positive-complete-session.pcap",
+      "sha256": "a4f262d20722b806c5b5a8f3093dce18489af32da91b3f765fb6e77a3f6b977f",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 29,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 38
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    },
+    {
+      "file": "pcap/dnscat2-aaaa-positive-complete-session.pcap",
+      "sha256": "0e0122f89bde607d019940fa32e8d2c039d3ea4c376fe9a5e9a9b7c2e6866d7d",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 1,
+      "observed_notices": 1,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 29,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 38
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    },
+    {
+      "file": "pcap/dnscat2-negative-inconsistent-reply-session-ids.pcap",
+      "sha256": "0f347d47bf4926fcf8019ba119a056f1dd8597e05617a1626de8483273a0654d",
+      "origin": "derived_from_native_lab_traffic",
+      "expected_notices": 0,
+      "observed_notices": 0,
+      "notice_type": "DNScat2::CompatibleSession",
+      "engine_exit": 0,
+      "engine_stderr_bytes": 0,
+      "frame_count": 14,
+      "original_frames_and_record_headers_preserved": true,
+      "all_dns_payload_bytes_preserved": true,
+      "public_negotiation_keys_and_encrypted_tunnel_bytes_preserved": true,
+      "arp_and_ipv6_background_frames_preserved": true,
+      "all_present_ipv4_udp_tcp_icmpv6_checksums_valid": true,
+      "independent_tshark_checksum_status_counts": {
+        "1": 28
+      },
+      "coverage_degraded": 0,
+      "queue_errors": 0,
+      "source_sha256": "5051f351e7ea3948a20791917f219d3416d0be8e6161e922345f4e600833dcd3",
+      "passed": true
+    }
+  ]
+}

@@ -8,6 +8,8 @@ Download [scenario 6](scenario6_zeek_test_%20also_triggers_Suricata2068664.pcap)
 
 [Scenario 8](scenario8_fires%20all_4_Suricata.pcap) is a Suricata case and produces zero Notices with this Zeek script. That result does not establish that its content is benign. These are the existing public test captures; their packet bytes have not been rewritten. Optional generation and regression tools remain secondary to the ready files.
 
+The [reader notes](../website-notes/Cloudflare-Suspicious-File-Delivery/cloudflare_file_1.0.0.json) accompany the source and explain the hostname context, response checks and exact Notice arguments.
+
 The current focus is on HTTP requests to Cloudflare family hostnames such as:
 
 - `*.trycloudflare.com`
