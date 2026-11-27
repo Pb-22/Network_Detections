@@ -20,7 +20,7 @@ Additional detection packages:
 - [`WMI/`](WMI/): rules for encoded WMI command output and combined recovery inhibition, positive and negative captures, and replay results.
 - [`Certipy/`](Certipy/): certificate authentication packet evidence, including [PKINIT-U2U](Certipy/PKINIT-U2U/). Its maintained detector and replay suite are in [Pb-22/zeek-detections](https://github.com/Pb-22/zeek-detections).
 - [`iodine/`](iodine/): native DNS and Raw UDP tunnel captures, a fragmentation test, and two negative controls with expected Zeek Notice results.
-- [`pe-disguise/`](pe-disguise/): a Zeek detector for PE files advertised as documents or images, with scripts to generate fixtures and run the tests.
+- [`pe-disguise/`](pe-disguise/): a Zeek detector for PE files advertised as documents or images, with ready test PCAPs and scripts to reproduce and replay them.
 
 ## Pb-22 Open Suricata feed
 

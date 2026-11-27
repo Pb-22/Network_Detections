@@ -1,4 +1,4 @@
-# Generated fixtures and raw test/benchmark output remain local.
+# Scratch fixtures and raw test output remain local.
 /test-output/
 /benchmark-output/
 /out/
@@ -8,3 +8,6 @@
 *.log
 __pycache__/
 *.pyc
+
+# Reviewed test PCAPs are part of the published package.
+!pcap/*.pcap

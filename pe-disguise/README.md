@@ -10,6 +10,7 @@ The finding means the file bytes and advertised filename do not agree. Treat it 
 - Zeek/filename.zeek: parses Content-Disposition, UTF-8 and language tags within fixed limits.
 - Zeek/pe.zeek: bounded PE32/PE32+ structure checks.
 - tests/: generates fixtures, runs replays and checks resource use and other analyzers.
+- [pcap/](pcap/): 28 ready test PCAPs, expected results and provenance.
 
 Keep the three Zeek files together. The detector examines observed response headers and file bytes. It does not identify files through test fixtures or lists of vendors, addresses or payload hashes.
 
@@ -20,10 +21,10 @@ With stock Zeek 9.0.1 available, run this from the repository root:
 ```sh
 mkdir -p pe-disguise-replay
 cd pe-disguise-replay
-zeek -C -r /path/to/sample.pcap ../pe-disguise/Zeek/main.zeek
+zeek -C -r ../pe-disguise/pcap/pe-disguise-http-positive-pe32-document.pcap ../pe-disguise/Zeek/main.zeek
 ```
 
-Replace /path/to/sample.pcap with the capture path. Zeek writes logs in the working directory. The script loads its adjacent helpers and HTTP/Notice dependencies. It also works with bare startup and explicit dependencies; it does not require native PE analysis or a hashing policy. Existing policies remain enabled.
+This capture should produce one Notice. Zeek writes logs in the working directory. The script loads its adjacent helpers and HTTP/Notice dependencies. It also works with bare startup and explicit dependencies; it does not require native PE analysis or a hashing policy. Existing policies remain enabled. See [the PCAP guide](pcap/README.md) for the other cases and how to use the three files in Try Zeek.
 
 The Notice message is:
 
@@ -35,7 +36,7 @@ Native UID, FUID and connection fields bind the finding to its response file. sr
 
 ## Run the focused tests
 
-The public test runner generates inert, modeled HTTP/TCP fixtures locally and replays them through the exact included source. Generated fixtures are synthetic test inputs, not captures of software running or a native Windows/browser workflow. No vendor binaries, downloaded specimens or private captures are included.
+Ready PCAPs are included in [pcap/](pcap/) so they can be downloaded and replayed without Python. The test runner can reproduce the same inert HTTP/TCP models and check the detector's output. These are synthetic test inputs, not captures of software running or a native Windows/browser workflow. No vendor binaries, downloaded specimens or private captures are included.
 
 The runner uses Python standard libraries and a pinned Docker image:
 

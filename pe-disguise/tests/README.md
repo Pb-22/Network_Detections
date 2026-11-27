@@ -8,6 +8,10 @@ model named `report.pdf`. The scripts do not download specimens or vendor files.
 
 ## Run
 
+Ready PCAPs are available in [pcap/](../pcap/), with expected results in its
+README. Use them directly in Zeek or Try Zeek. The generator stays here to
+reproduce the same bytes, while this runner exercises the full assertions.
+
 Requirements: Python 3 standard library, Docker, and the exact Zeek 9.0.1 image
 already present locally. Provision that image explicitly if needed:
 
