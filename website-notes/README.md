@@ -9,6 +9,8 @@ example, pe-disguise/Zeek/main.zeek uses
 pe-disguise/Zeek/main.json beneath this directory. The EarthWorm Markdown source
 uses Earthworm/Zeek_Script.json; its anchors refer to the extracted Zeek code.
 
+Use the [worked caller and helper pair and authoring checklist](FAMILIES.md#author-the-connection-at-its-source) for the visible file connections. Author path, topic and a meaningful relationship label; the website derives destination titles and current lines. Give helpers granular explanations and link onward where the source uses another family file.
+
 Topics keep stable IDs and exact source snippets. The importer locates those
 snippets when it builds the reader, so inserting blank lines does not require
 manual line numbers. Notice argument references use the source line and exact
