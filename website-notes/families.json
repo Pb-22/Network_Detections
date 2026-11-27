@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "families": [
+    {
+      "id": "cloudflare-file-delivery",
+      "entry": "Cloudflare-Suspicious-File-Delivery/cloudflare_file_1.0.0.zeek",
+      "title": "Cloudflare file delivery",
+      "description": "Uses recent Cloudflare hostname context and HTTP response metadata to report configured file delivery patterns.",
+      "files": [
+        {
+          "path": "Cloudflare-Suspicious-File-Delivery/cloudflare_file_1.0.0.zeek",
+          "label": "Detection",
+          "role": "entry"
+        }
+      ],
+      "captures": [
+        {
+          "repository": "Pb-22/Network_Detections",
+          "path": "Cloudflare-Suspicious-File-Delivery/scenario6_zeek_test_ also_triggers_Suricata2068664.pcap",
+          "label": "Primary test PCAP",
+          "expected_notices": 2,
+          "provenance": "Existing public test capture"
+        },
+        {
+          "repository": "Pb-22/Network_Detections",
+          "path": "Cloudflare-Suspicious-File-Delivery/scenario8_fires all_4_Suricata.pcap",
+          "label": "Suricata scenario: no Zeek Notice expected",
+          "expected_notices": 0,
+          "provenance": "Existing public test capture"
+        }
+      ],
+      "capture_guide": {
+        "repository": "Pb-22/Network_Detections",
+        "path": "Cloudflare-Suspicious-File-Delivery/README.md"
+      }
+    },
+    {
+      "id": "earthworm",
+      "entry": "Earthworm/Zeek_Script.md",
+      "title": "EarthWorm reverse SOCKS activity",
+      "description": "Reports EarthWorm setup control sequences and the request patterns used after setup.",
+      "files": [
+        {
+          "path": "Earthworm/Zeek_Script.md",
+          "label": "Detection",
+          "role": "entry"
+        }
+      ],
+      "captures": [
+        {
+          "repository": "Pb-22/Network_Detections",
+          "path": "Earthworm/PCAPs/ew-test-01-handshake-single-http.pcap",
+          "label": "Primary test PCAP",
+          "expected_notices": 2,
+          "provenance": "Existing public test capture"
+        }
+      ],
+      "capture_guide": {
+        "repository": "Pb-22/Network_Detections",
+        "path": "Earthworm/README.md"
+      }
+    },
+    {
+      "id": "pe-disguise",
+      "entry": "pe-disguise/Zeek/main.zeek",
+      "title": "PE content advertised as a document or image",
+      "description": "Reports complete HTTP downloads whose selected document or image filename disagrees with coherent PE structure in the outer file.",
+      "files": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "label": "Detection",
+          "role": "entry"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "label": "Filename selection",
+          "role": "required"
+        },
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "label": "PE checks",
+          "role": "required"
+        }
+      ],
+      "captures": [
+        {
+          "repository": "Pb-22/Network_Detections",
+          "path": "pe-disguise/pcap/pe-disguise-http-positive-pe32-document.pcap",
+          "label": "Primary test PCAP",
+          "expected_notices": 1,
+          "provenance": "Synthetic test traffic"
+        },
+        {
+          "repository": "Pb-22/Network_Detections",
+          "path": "pe-disguise/pcap/pe-disguise-http-negative-honest-executable-name.pcap",
+          "label": "Control PCAP",
+          "expected_notices": 0,
+          "provenance": "Synthetic test traffic"
+        }
+      ],
+      "capture_guide": {
+        "repository": "Pb-22/Network_Detections",
+        "path": "pe-disguise/pcap/README.md"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1410 @@
+{
+  "schema_version": 1,
+  "path": "pe-disguise/Zeek/main.zeek",
+  "title": "PE content with a document or image filename",
+  "description": "Admits complete HTTP 200 response files with a selected document or image filename, checks bounded PE headers and emits a Notice only after HTTP and file completion agree with Content-Length.",
+  "tags": [
+    "HTTP",
+    "PE",
+    "Content-Disposition"
+  ],
+  "initialTopic": "file-header-admission",
+  "topics": [
+    {
+      "id": "runtime-loads",
+      "title": "Load HTTP Notice and PE helpers",
+      "description": "The HTTP scripts provide transaction and file association state. The Notice framework supplies NOTICE. The relative pe load supplies structural PE checks and loads filename selection and shared limits.",
+      "ranges": [
+        {
+          "code": "@load base/protocols/http\n@load base/frameworks/notice\n@load ./pe"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "filename-load",
+          "label": "Follow the helper dependency"
+        },
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "pe-format-entry",
+          "label": "Open PE header classification"
+        }
+      ]
+    },
+    {
+      "id": "notice-type",
+      "title": "Declare the finding type",
+      "description": "DocumentImageMismatch is added to Notice::Type inside the PEFileDisguise export block. finish selects this type after the filename, structure and completion checks.",
+      "ranges": [
+        {
+          "code": "redef enum Notice::Type += { DocumentImageMismatch };"
+        }
+      ],
+      "links": [
+        [
+          "notice-record",
+          "See the emitted Notice record"
+        ]
+      ]
+    },
+    {
+      "id": "health-contexts",
+      "title": "Count active context ownership",
+      "description": "Health tracks active_contexts and peak_active_contexts. Admission increments active ownership, release_context decrements it once, and the peak records the highest simultaneous count.",
+      "ranges": [
+        {
+          "code": "type Health: record {\nactive_contexts: count &default=0;\npeak_active_contexts: count &default=0;"
+        }
+      ],
+      "links": [
+        [
+          "context-admission-cap",
+          "Use the active count for admission"
+        ],
+        [
+          "release-context-state",
+          "Release owned context count"
+        ]
+      ]
+    },
+    {
+      "id": "health-prefix",
+      "title": "Count retained prefix bytes",
+      "description": "retained_prefix_bytes measures the aggregate bytes still held in context prefixes. prefix_data increments it as bytes are copied; release_prefix subtracts the current string length. The peak records the highest retained total.",
+      "ranges": [
+        {
+          "code": "retained_prefix_bytes: count &default=0;\npeak_retained_prefix_bytes: count &default=0;"
+        }
+      ],
+      "links": [
+        [
+          "prefix-accounting",
+          "Account copied prefix bytes"
+        ],
+        [
+          "release-prefix",
+          "Release retained prefix accounting"
+        ]
+      ]
+    },
+    {
+      "id": "health-outcomes",
+      "title": "Count admissions drops and notices",
+      "description": "eligible_files counts admitted contexts, admission_drops counts attempts declined at the context cap, and notices counts emitted findings. The exported health record initializes each metric to zero.",
+      "ranges": [
+        {
+          "code": "eligible_files: count &default=0;\nadmission_drops: count &default=0;\nnotices: count &default=0;\n};\nglobal health: Health = Health();"
+        }
+      ],
+      "links": [
+        [
+          "context-counts",
+          "Count an admitted file"
+        ],
+        [
+          "context-admission-cap",
+          "Count a capacity drop"
+        ],
+        [
+          "notice-count",
+          "Count a Notice emission"
+        ]
+      ]
+    },
+    {
+      "id": "context-identity",
+      "title": "Keep transaction and file identity",
+      "description": "Context stores the connection UID and conn_id, the file FUID and the HTTP transaction depth. Admission captures these values so later completion can verify the transaction and the Notice can identify both endpoints and file.",
+      "ranges": [
+        {
+          "code": "type Context: record {\nuid: string;\nid: conn_id;\nfuid: string;\ndepth: count;"
+        }
+      ],
+      "links": [
+        [
+          "context-create",
+          "Capture immutable admission identity"
+        ],
+        [
+          "http-completion-quality",
+          "Check the finishing transaction identity"
+        ]
+      ]
+    },
+    {
+      "id": "context-advertisement",
+      "title": "Keep selected name and declared length",
+      "description": "filename contains the Content-Disposition selection and declared contains the checked Content-Length. They are copied into shared context at admission and used for completion equality and Notice evidence.",
+      "ranges": [
+        {
+          "code": "filename: string;\ndeclared: count;"
+        }
+      ],
+      "links": [
+        [
+          "context-create",
+          "Copy the header selection into context"
+        ],
+        [
+          "notice-evidence",
+          "Trace name and declared bytes in the Notice"
+        ]
+      ]
+    },
+    {
+      "id": "context-parse-state",
+      "title": "Keep bounded parse progress",
+      "description": "prefix retains only the staged header bytes. parsed starts F, format starts empty and bad starts F. Prefix classification sets parsed and format, while any quality failure can set bad.",
+      "ranges": [
+        {
+          "code": "prefix: string &default=\"\";\nparsed: bool &default=F;\nformat: string &default=\"\";\nbad: bool &default=F;"
+        }
+      ],
+      "links": [
+        [
+          "prefix-classify",
+          "Store the parser result"
+        ],
+        [
+          "reject-context",
+          "Mark and release rejected state"
+        ]
+      ]
+    },
+    {
+      "id": "context-completion-state",
+      "title": "Separate completion from release",
+      "description": "http_done and file_done start F and record their independent native completions. released starts F and becomes a tombstone when budgets are released, keeping late callbacks from reusing the context.",
+      "ranges": [
+        {
+          "code": "http_done: bool &default=F;\nfile_done: bool &default=F;\nreleased: bool &default=F;"
+        }
+      ],
+      "links": [
+        [
+          "finish-both-gates",
+          "Wait for both completion flags"
+        ],
+        [
+          "release-context-guard",
+          "Make release idempotent"
+        ]
+      ]
+    },
+    {
+      "id": "context-byte-counts",
+      "title": "Keep final native file counts",
+      "description": "seen and total start zero and are filled from native file state at removal. completion_ok compares both against the stored declared length.",
+      "ranges": [
+        {
+          "code": "seen: count &default=0;\ntotal: count &default=0;"
+        }
+      ],
+      "links": [
+        [
+          "file-completion-counts",
+          "Capture native final counts"
+        ],
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "completion-definition",
+          "label": "Compare observed total and declared bytes"
+        }
+      ]
+    },
+    {
+      "id": "headers-quality",
+      "title": "Track response header quality and multiplicity",
+      "description": "Headers begins with bad=F and zero counts for Content-Disposition, Content-Length, Content-Encoding and Content-Type. The header handler marks conflicting framing or repeated selected headers as bad.",
+      "ranges": [
+        {
+          "code": "type Headers: record {\nbad: bool &default=F;\ncd_count: count &default=0;\ncl_count: count &default=0;\nce_count: count &default=0;\nct_count: count &default=0;"
+        }
+      ],
+      "links": [
+        [
+          "header-filename",
+          "Count filename headers"
+        ],
+        [
+          "header-duplicates",
+          "Reject duplicate disposition or length headers"
+        ]
+      ]
+    },
+    {
+      "id": "headers-selection",
+      "title": "Keep response selection and file count",
+      "description": "Header state holds the selected filename, the declared length and the number of associated response files. Empty initial values keep admission closed until accepted metadata and exactly one file are present.",
+      "ranges": [
+        {
+          "code": "filename: string &default=\"\";\ndeclared: count &default=0;\nfiles: count &default=0;"
+        }
+      ],
+      "links": [
+        [
+          "file-header-admission",
+          "Use the header selection and counts"
+        ]
+      ]
+    },
+    {
+      "id": "http-shared-context",
+      "title": "Attach header and context state to HTTP",
+      "description": "Each HTTP::Info has default fresh Headers and an optional Context reference. The reference is shared with the admitted native file so both completion callbacks update the same object.",
+      "ranges": [
+        {
+          "code": "redef record HTTP::Info += {\npfd_headers: Headers &default=Headers();\npfd_context: Context &optional;\n};"
+        }
+      ],
+      "links": [
+        [
+          "context-share",
+          "Share one context between HTTP and file callbacks"
+        ]
+      ]
+    },
+    {
+      "id": "file-shared-context",
+      "title": "Attach the shared context and declare its byte callback",
+      "description": "fa_file gains an optional pfd_context. prefix_data is declared with the exact file and byte string event signature used in the DATA_EVENT analyzer arguments.",
+      "ranges": [
+        {
+          "code": "redef record fa_file += { pfd_context: Context &optional; };\nglobal prefix_data: event(f: fa_file, data: string);"
+        }
+      ],
+      "links": [
+        [
+          "context-share",
+          "Set the file context reference"
+        ],
+        [
+          "analyzer-attach",
+          "Attach the exact prefix callback instance"
+        ]
+      ]
+    },
+    {
+      "id": "stop-prefix",
+      "title": "Detach this exact prefix callback instance",
+      "description": "stop_prefix calls Files::remove_analyzer with f, Files::ANALYZER_DATA_EVENT and [$stream_event=prefix_data]. Those arguments identify this policy callback instance; DATA_EVENT instances with other arguments remain attached. Queued callbacks still test the shared state before collecting bytes.",
+      "ranges": [
+        {
+          "code": "function stop_prefix(f: fa_file)\n{ Files::remove_analyzer(f,Files::ANALYZER_DATA_EVENT,[$stream_event=prefix_data]); }"
+        }
+      ],
+      "links": [
+        [
+          "analyzer-attach",
+          "Compare the matching attach arguments"
+        ],
+        [
+          "prefix-tombstone",
+          "Guard already queued prefix callbacks"
+        ]
+      ]
+    },
+    {
+      "id": "release-prefix",
+      "title": "Release the retained string and its byte budget",
+      "description": "release_prefix subtracts the current prefix length from health$retained_prefix_bytes and replaces the prefix with an empty string. Classification can release bytes while keeping context ownership for completion.",
+      "ranges": [
+        {
+          "code": "function release_prefix(x: Context)\n{\nhealth$retained_prefix_bytes-=|x$prefix|;\nx$prefix=\"\";\n}"
+        }
+      ],
+      "links": [
+        [
+          "prefix-classify",
+          "Release bytes after successful classification"
+        ],
+        [
+          "release-context-state",
+          "Release bytes during final context cleanup"
+        ]
+      ]
+    },
+    {
+      "id": "release-context-guard",
+      "title": "Release a context at most once",
+      "description": "release_context returns immediately when released is already T. This guard protects the byte budget and active context count when rejection and late completion paths meet.",
+      "ranges": [
+        {
+          "code": "function release_context(x: Context)\n{\nif ( x$released ) return;"
+        }
+      ],
+      "links": [
+        [
+          "release-context-state",
+          "Release the owned budgets once"
+        ]
+      ]
+    },
+    {
+      "id": "release-context-state",
+      "title": "Clear prefix ownership and tombstone the context",
+      "description": "release_prefix clears retained bytes, released becomes T and active_contexts decreases once. The shared reference remains reachable by queued callbacks, which observe the tombstone.",
+      "ranges": [
+        {
+          "code": "release_prefix(x); x$released=T; --health$active_contexts;"
+        }
+      ],
+      "links": [
+        [
+          "release-prefix",
+          "Clear the prefix string and byte count"
+        ],
+        [
+          "prefix-tombstone",
+          "Stop a late prefix callback"
+        ],
+        [
+          "finish-released",
+          "Stop a late completion callback"
+        ]
+      ]
+    },
+    {
+      "id": "reject-context",
+      "title": "Mark a context bad and release it",
+      "description": "reject_context sets bad=T and calls release_context immediately. Quality, framing and parser failures all converge here to release owned budgets.",
+      "ranges": [
+        {
+          "code": "function reject_context(x: Context)\n{ x$bad=T; release_context(x); }"
+        }
+      ],
+      "links": [
+        [
+          "release-context-guard",
+          "Use the idempotent release operation"
+        ]
+      ]
+    },
+    {
+      "id": "finish-released",
+      "title": "Ignore completion on released context",
+      "description": "finish returns when the shared context is already released. A later HTTP or file callback therefore cannot emit another Notice or release the budgets again.",
+      "ranges": [
+        {
+          "code": "function finish(x: Context)\n{\nif ( x$released ) return;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "finish-bad",
+      "title": "Release a failed completion context",
+      "description": "A bad context calls reject_context and returns. This path can clean up a quality failure before both completion flags become true.",
+      "ranges": [
+        {
+          "code": "if ( x$bad ) { reject_context(x); return; }"
+        }
+      ],
+      "links": [
+        [
+          "reject-context",
+          "Mark and release the failed context"
+        ]
+      ]
+    },
+    {
+      "id": "finish-both-gates",
+      "title": "Wait for both native completion gates",
+      "description": "For a context still eligible for a finding, finish returns until both http_done and file_done are T. Header classification alone and either single completion callback keep the Notice path closed.",
+      "ranges": [
+        {
+          "code": "if ( ! x$http_done || ! x$file_done ) return;"
+        }
+      ],
+      "links": [
+        [
+          "http-completion-flag",
+          "Set the HTTP completion gate"
+        ],
+        [
+          "file-completion-counts",
+          "Set the native file completion gate"
+        ]
+      ]
+    },
+    {
+      "id": "finish-completion",
+      "title": "Combine exact completion and accepted format",
+      "description": "completion_ok receives both flags, bad, seen, total and declared from the shared context. Its T result must coincide with a nonempty x$format to enter the Notice block.",
+      "ranges": [
+        {
+          "code": "if ( completion_ok(x$http_done,x$file_done,x$bad,x$seen,x$total,x$declared) && x$format!=\"\" )"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "completion-definition",
+          "label": "Follow the actual completion predicate definition"
+        },
+        [
+          "prefix-classify",
+          "See where the format is stored"
+        ]
+      ]
+    },
+    {
+      "id": "notice-record",
+      "title": "Emit the exact type and reason",
+      "description": "NOTICE uses DocumentImageMismatch and the literal msg PE content advertised with a document or image filename. The preceding gates establish the filename selection, supported PE structure and complete body length agreement.",
+      "ranges": [
+        {
+          "code": "NOTICE([$note=DocumentImageMismatch,\n$msg=\"PE content advertised with a document or image filename\","
+        }
+      ],
+      "links": [
+        [
+          "finish-completion",
+          "Read the final emission predicate"
+        ],
+        [
+          "notice-evidence",
+          "Read the exact sub template"
+        ]
+      ]
+    },
+    {
+      "id": "notice-evidence",
+      "title": "Define the ordered evidence template",
+      "description": "The fmt template records FUID, UID, filename bytes as hexadecimal, the literal filename source content-disposition, the PE format, observed and declared byte counts, and originator and responder ports in that order. The eight dynamic placeholders map to the arguments on the following source line.",
+      "ranges": [
+        {
+          "code": "$sub=fmt(\"fuid=%s;uid=%s;filename_hex=%s;filename_source=content-disposition;format=%s;observed_bytes=%d;declared_bytes=%d;orig_p=%s;resp_p=%s\","
+        }
+      ],
+      "links": [
+        [
+          "notice-arguments",
+          "Trace all eight fmt arguments"
+        ]
+      ]
+    },
+    {
+      "id": "notice-arguments",
+      "title": "Supply each evidence placeholder in order",
+      "description": "The arguments are x$fuid, x$uid, bytestring_to_hexstr(x$filename), the PE32 or PE32+ conditional, x$seen, x$declared, x$id$orig_p and x$id$resp_p. Hex encoding retains the selected filename bytes in a printable field. seen comes from native file removal; declared comes from Content-Length.",
+      "ranges": [
+        {
+          "code": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),"
+        }
+      ],
+      "links": [
+        [
+          "context-create",
+          "Trace FUID UID filename declared length and connection ID"
+        ],
+        [
+          "file-completion-counts",
+          "Trace observed file bytes"
+        ],
+        [
+          "notice-format",
+          "Explain format rendering"
+        ]
+      ]
+    },
+    {
+      "id": "notice-endpoints",
+      "title": "Attach the client and server connection identity",
+      "description": "The Notice record copies uid, conn_id and fuid from the admitted context. src is the connection originator address, dst is the responder address and p is the responder port. The admitted bytes came from the HTTP responder, while these record fields retain connection client to server orientation.",
+      "ranges": [
+        {
+          "code": "$uid=x$uid,$id=x$id,$fuid=x$fuid,$src=x$id$orig_h,$dst=x$id$resp_h,$p=x$id$resp_p]);"
+        }
+      ],
+      "links": [
+        [
+          "file-direction",
+          "See response file direction admission"
+        ],
+        [
+          "context-create",
+          "Trace the captured connection identity"
+        ]
+      ]
+    },
+    {
+      "id": "notice-format",
+      "title": "Render the accepted PE format",
+      "description": "The actual fmt argument x$format==\"pe32\" ? \"PE32\" : \"PE32+\" renders pe32 as PE32 and the accepted pe32plus path as PE32+. A nonempty format reaches this argument only after pe_format returned a supported pair.",
+      "ranges": [
+        {
+          "code": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "pe32-pair",
+          "label": "See the pe32 return value"
+        },
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "pe32plus-pair",
+          "label": "See the pe32plus return value"
+        }
+      ],
+      "concept": true
+    },
+    {
+      "id": "notice-count",
+      "title": "Count the emitted finding",
+      "description": "health$notices increments immediately after NOTICE executes, inside the final completion and format branch.",
+      "ranges": [
+        {
+          "code": "++health$notices;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "finish-release",
+      "title": "Release context after the final decision",
+      "description": "Once both gates are present, finish releases the context whether the final predicate emitted a Notice or not. The release operation clears any remaining prefix budget and tombstones shared state.",
+      "ranges": [
+        {
+          "code": "release_context(x);"
+        }
+      ],
+      "links": [
+        [
+          "release-context-guard",
+          "Release once after completion"
+        ]
+      ]
+    },
+    {
+      "id": "decimal-input",
+      "title": "Require bounded decimal Content-Length syntax",
+      "description": "decimal_length strips surrounding whitespace, then requires a nonempty string of ASCII digits no longer than max_header_value_bytes. Invalid input returns zero, which the header handler marks bad.",
+      "ranges": [
+        {
+          "code": "function decimal_length(value: string): count\n{\nlocal v=strip(value);\nif ( |v|>max_header_value_bytes || ! ( /^[0-9]+$/ == v ) ) return 0;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "header-budget",
+          "label": "Read the decimal input cap"
+        },
+        [
+          "header-length",
+          "Use zero as a rejected length"
+        ]
+      ]
+    },
+    {
+      "id": "decimal-state",
+      "title": "Accumulate decimal digits from zero",
+      "description": "n starts zero and i visits each byte of the accepted digit string. The next operations convert one byte and check capacity before multiplying n by ten.",
+      "ranges": [
+        {
+          "code": "local n: count=0; local i: count=0;\nwhile ( i<|v| )\n{"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "decimal-digit",
+      "title": "Convert one ASCII digit byte",
+      "description": "octet(v,i)-48 converts the already validated ASCII digit to a value from zero through nine, then increments i.",
+      "ranges": [
+        {
+          "code": "local digit=octet(v,i)-48; ++i;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "octet-definition",
+          "label": "Read the numeric digit byte"
+        }
+      ]
+    },
+    {
+      "id": "decimal-overflow",
+      "title": "Check the object cap before multiplying",
+      "description": "n must be at most (max_object_bytes-digit)/10 before n=n*10+digit. A larger prefix returns zero, keeping the accumulated Content-Length within max_object_bytes.",
+      "ranges": [
+        {
+          "code": "if ( n>(max_object_bytes-digit)/10 ) return 0;\nn=n*10+digit;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "object-budget",
+          "label": "Read the maximum declared object size"
+        }
+      ]
+    },
+    {
+      "id": "decimal-return",
+      "title": "Return the parsed byte count",
+      "description": "The count n becomes h$declared in the header handler. A decimal zero also returns zero and is rejected there, so admitted objects have a positive declared byte count.",
+      "ranges": [
+        {
+          "code": "return n;"
+        }
+      ],
+      "links": [
+        [
+          "header-length",
+          "Store and check the parsed count"
+        ]
+      ]
+    },
+    {
+      "id": "reply-reset",
+      "title": "Reset header state for each response",
+      "description": "http_reply at priority 0 replaces pfd_headers with Headers(). Header counts, filename, declared length, bad and file count therefore start fresh for this response.",
+      "ranges": [
+        {
+          "code": "event http_reply(c: connection, version: string, code: count, reason: string) &priority=0\n{ c$http$pfd_headers=Headers(); }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-direction",
+      "title": "Inspect responder headers with HTTP state",
+      "description": "http_header at priority 0 returns for originator headers or a connection without HTTP state. h references this response pfd_headers for the following counters and quality flags.",
+      "ranges": [
+        {
+          "code": "event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=0\n{\nif ( is_orig || ! c?$http ) return;\nlocal h=c$http$pfd_headers;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-depth",
+      "title": "Require the outer response MIME depth",
+      "description": "A response MIME depth other than one marks the header state bad and returns. File admission checks depth again and requires a single outer response file.",
+      "ranges": [
+        {
+          "code": "if ( c$http$resp_mime_depth!=1 ) { h$bad=T; return; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-value-bound",
+      "title": "Bound each inspected response header value",
+      "description": "Any response header value above max_header_value_bytes marks h$bad and returns before name specific processing. The bound applies to all headers observed by this handler.",
+      "ranges": [
+        {
+          "code": "if ( |value|>max_header_value_bytes ) { h$bad=T; return; }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "header-budget",
+          "label": "Read the shared header byte cap"
+        }
+      ]
+    },
+    {
+      "id": "header-filename",
+      "title": "Select a Content-Disposition filename",
+      "description": "The exact event header name CONTENT-DISPOSITION increments cd_count and passes value to selected_filename. The actual parser returns the selected bytes into h$filename, including filename* precedence and an empty result for rejected syntax.",
+      "ranges": [
+        {
+          "code": "if ( name==\"CONTENT-DISPOSITION\" )\n{ ++h$cd_count; h$filename=selected_filename(value); }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "selected-filename-entry",
+          "label": "Follow filename selection at the actual parser definition"
+        },
+        [
+          "file-header-admission",
+          "Use the selected name for file admission"
+        ]
+      ]
+    },
+    {
+      "id": "header-length",
+      "title": "Parse one positive Content-Length",
+      "description": "CONTENT-LENGTH increments cl_count and stores decimal_length(value) into h$declared. A zero result sets bad, covering zero length, rejected syntax and a value exceeding the object cap.",
+      "ranges": [
+        {
+          "code": "else if ( name==\"CONTENT-LENGTH\" )\n{\n++h$cl_count; h$declared=decimal_length(value);\nif ( h$declared==0 ) h$bad=T;\n}"
+        }
+      ],
+      "links": [
+        [
+          "decimal-input",
+          "Follow the actual decimal parser definition"
+        ]
+      ]
+    },
+    {
+      "id": "header-framing",
+      "title": "Require a complete unsegmented length profile",
+      "description": "TRANSFER-ENCODING and CONTENT-RANGE each mark the response bad. The accepted path uses one Content-Length and a complete response body for byte agreement.",
+      "ranges": [
+        {
+          "code": "else if ( name==\"TRANSFER-ENCODING\" || name==\"CONTENT-RANGE\" ) h$bad=T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-encoding",
+      "title": "Accept at most one identity content encoding",
+      "description": "CONTENT-ENCODING increments ce_count. The stripped lowercased value must be identity and the count must be at most one, so the admitted body bytes use the identity representation.",
+      "ranges": [
+        {
+          "code": "else if ( name==\"CONTENT-ENCODING\" )\n{ ++h$ce_count; if ( to_lower(strip(value))!=\"identity\" || h$ce_count>1 ) h$bad=T; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-content-type",
+      "title": "Require a single nonmultipart Content-Type when present",
+      "description": "CONTENT-TYPE increments ct_count. A value beginning with optional space or tab and multipart/ after lowercasing, or a repeated Content-Type, marks bad. An absent Content-Type leaves its count zero.",
+      "ranges": [
+        {
+          "code": "else if ( name==\"CONTENT-TYPE\" )\n{ ++h$ct_count; if ( /^[ \\t]*multipart\\// in to_lower(value) || h$ct_count>1 ) h$bad=T; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "header-duplicates",
+      "title": "Reject repeated disposition or length fields",
+      "description": "More than one Content-Disposition or Content-Length marks h$bad after field handling. Even matching repeated values therefore fail admission.",
+      "ranges": [
+        {
+          "code": "if ( h$cd_count>1 || h$cl_count>1 ) h$bad=T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "file-direction",
+      "title": "Admit only an outer HTTP responder file",
+      "description": "file_over_new_connection at priority 0 requires source HTTP, HTTP association, callback is_orig=F, a present native is_orig field that is F, and no parent_id. These predicates select the outer file carrying bytes from the HTTP responder.",
+      "ranges": [
+        {
+          "code": "event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=0\n{\nif ( f$source!=\"HTTP\" || ! f?$http || is_orig || ! f?$is_orig || f$is_orig || f?$parent_id ) return;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "file-count",
+      "title": "Count associated response files",
+      "description": "h references the file HTTP header state and files increments for each file reaching this point. Later admission and HTTP completion both require exactly one file.",
+      "ranges": [
+        {
+          "code": "local h=f$http$pfd_headers; ++h$files;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "file-existing-context",
+      "title": "Reject a second association to a tracked response",
+      "description": "If the HTTP state already holds pfd_context, the handler rejects that shared context and returns. This prevents a later association from preserving an earlier single file finding.",
+      "ranges": [
+        {
+          "code": "if ( f$http?$pfd_context ) { reject_context(f$http$pfd_context); return; }"
+        }
+      ],
+      "links": [
+        [
+          "reject-context",
+          "Release the already associated context"
+        ]
+      ]
+    },
+    {
+      "id": "file-header-admission",
+      "title": "Require one complete HTTP 200 response association",
+      "description": "Admission requires good headers, one file, exactly one disposition and length, a nonempty selected name, status 200, no range_request and response MIME depth one. resp_fuids must exist, contain exactly one entry and identify this native file. These checks bind the advertised metadata to the one tracked response file.",
+      "ranges": [
+        {
+          "code": "if ( h$bad || h$files!=1 || h$cd_count!=1 || h$cl_count!=1 || h$filename==\"\" ||\n! f$http?$status_code || f$http$status_code!=200 || f$http$range_request ||\nf$http$resp_mime_depth!=1 || ! f$http?$resp_fuids || |f$http$resp_fuids|!=1 || f$http$resp_fuids[0]!=f$id ) return;"
+        }
+      ],
+      "links": [
+        [
+          "header-filename",
+          "Trace the selected filename"
+        ],
+        [
+          "header-length",
+          "Trace the checked declared length"
+        ]
+      ]
+    },
+    {
+      "id": "filename-suffix",
+      "title": "Require a listed document or image suffix",
+      "description": "The anchored suffix pattern on to_lower(h$filename) accepts the listed pdf, Office, OpenDocument and image extensions at the end of the selected bytes. The suffix is ASCII and case insensitive through lowercasing; earlier name checks supply the separate byte encoding and basename restrictions.",
+      "ranges": [
+        {
+          "code": "if ( ! ( /\\.(pdf|doc|docx|xls|xlsx|ppt|pptx|rtf|odt|ods|odp|jpg|jpeg|png|gif|bmp|tif|tiff|webp|svg)$/ in to_lower(h$filename) ) ) return;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "extended-selection",
+          "label": "Trace extended name selection"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "plain-return",
+          "label": "Trace ordinary name selection"
+        }
+      ]
+    },
+    {
+      "id": "context-admission-cap",
+      "title": "Decline admission when context capacity is full",
+      "description": "When active_contexts reaches max_active_contexts, admission_drops increments and the handler returns before creating a context or adding an analyzer.",
+      "ranges": [
+        {
+          "code": "if ( health$active_contexts>=max_active_contexts ) { ++health$admission_drops; return; }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "context-budget",
+          "label": "Read the active context cap"
+        }
+      ]
+    },
+    {
+      "id": "context-create",
+      "title": "Capture filename length and transaction identity",
+      "description": "The new Context copies c$uid, c$id, f$id, f$http$trans_depth, h$filename and h$declared. These values bind later parsing, completion and Notice arguments to this admitted response.",
+      "ranges": [
+        {
+          "code": "local x=Context($uid=c$uid,$id=c$id,$fuid=f$id,$depth=f$http$trans_depth,$filename=h$filename,$declared=h$declared);"
+        }
+      ],
+      "links": [
+        [
+          "context-advertisement",
+          "Read the stored name and length fields"
+        ],
+        [
+          "notice-arguments",
+          "Follow identity and metadata into sub"
+        ]
+      ]
+    },
+    {
+      "id": "context-share",
+      "title": "Share the context with both native owners",
+      "description": "f$pfd_context and f$http$pfd_context reference the same x. The file and HTTP completion handlers therefore set independent flags and quality state on one shared context.",
+      "ranges": [
+        {
+          "code": "f$pfd_context=x; f$http$pfd_context=x;"
+        }
+      ],
+      "links": [
+        [
+          "http-completion-flag",
+          "Set the HTTP flag on shared state"
+        ],
+        [
+          "file-completion-counts",
+          "Set the file flag on shared state"
+        ]
+      ]
+    },
+    {
+      "id": "context-counts",
+      "title": "Account admitted context ownership",
+      "description": "active_contexts and eligible_files increment at admission. If this raises the simultaneous context peak, peak_active_contexts receives the new count. release_context later returns active ownership once.",
+      "ranges": [
+        {
+          "code": "++health$active_contexts; ++health$eligible_files;\nif ( health$active_contexts>health$peak_active_contexts ) health$peak_active_contexts=health$active_contexts;"
+        }
+      ],
+      "links": [
+        [
+          "release-context-state",
+          "Release the counted active context"
+        ]
+      ]
+    },
+    {
+      "id": "analyzer-attach",
+      "title": "Attach only the prefix stream event instance",
+      "description": "Files::add_analyzer receives f, Files::ANALYZER_DATA_EVENT and [$stream_event=prefix_data]. Failure immediately rejects x. stop_prefix removes this exact argument instance after parsing or rejection.",
+      "ranges": [
+        {
+          "code": "if ( ! Files::add_analyzer(f,Files::ANALYZER_DATA_EVENT,[$stream_event=prefix_data]) ) reject_context(x);"
+        }
+      ],
+      "links": [
+        [
+          "prefix-context",
+          "Deliver stream bytes to prefix_data"
+        ],
+        [
+          "stop-prefix",
+          "Detach the identical callback arguments"
+        ],
+        [
+          "reject-context",
+          "Release state on attach failure"
+        ]
+      ]
+    },
+    {
+      "id": "prefix-context",
+      "title": "Retrieve context for streamed file bytes",
+      "description": "prefix_data receives a native file and the next data string. Files without pfd_context return immediately; otherwise x references the admitted shared state.",
+      "ranges": [
+        {
+          "code": "event prefix_data(f: fa_file, data: string)\n{\nif ( ! f?$pfd_context ) return;\nlocal x=f$pfd_context;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "prefix-tombstone",
+      "title": "Stop callbacks after release parse or failure",
+      "description": "A released, parsed or bad context calls stop_prefix and returns before retaining more bytes. This guard also covers stream callbacks already queued when the exact analyzer instance was detached.",
+      "ranges": [
+        {
+          "code": "if ( x$released || x$parsed || x$bad ) { stop_prefix(f); return; }"
+        }
+      ],
+      "links": [
+        [
+          "stop-prefix",
+          "Remove the owned stream callback instance"
+        ]
+      ]
+    },
+    {
+      "id": "prefix-cursor",
+      "title": "Consume each callback with a local cursor",
+      "description": "cursor starts zero for the current data string and the loop repeatedly recomputes the next required header extent. Several prefix stages can therefore be satisfied from one callback without appending its whole payload.",
+      "ranges": [
+        {
+          "code": "local cursor: count=0;\nwhile ( T )\n{"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "prefix-needed",
+      "title": "Ask for the next necessary header extent",
+      "description": "needed(x$prefix) returns the next required prefix byte count using the bytes already retained. It stages DOS, signature plus COFF, then optional header and section table collection.",
+      "ranges": [
+        {
+          "code": "local need=needed(x$prefix);"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "needed-entry",
+          "label": "Follow the actual required prefix definition"
+        }
+      ]
+    },
+    {
+      "id": "prefix-need-bound",
+      "title": "Bound the requested extent before copying",
+      "description": "A need above max_prefix_bytes or x$declared rejects the context and detaches the callback. Both the sentinel and an oversized computed table extent stop here.",
+      "ranges": [
+        {
+          "code": "if ( need>max_prefix_bytes || need>x$declared )\n{ reject_context(x); stop_prefix(f); return; }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "prefix-budget",
+          "label": "Read the prefix byte cap"
+        },
+        [
+          "reject-context",
+          "Release rejected prefix state"
+        ],
+        [
+          "stop-prefix",
+          "Detach the owned callback"
+        ]
+      ]
+    },
+    {
+      "id": "prefix-ready",
+      "title": "Classify when the required extent is present",
+      "description": "When the retained length reaches need, the following branch invokes pe_format once. Otherwise the cursor path copies only bytes still required by this stage.",
+      "ranges": [
+        {
+          "code": "if ( |x$prefix|>=need )\n{"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "prefix-classify",
+      "title": "Store the PE result and stop prefix collection",
+      "description": "pe_format receives x$prefix and x$declared; its result becomes x$format and parsed becomes T. An empty result rejects x, while a recognized format releases only prefix bytes so completion can still qualify the context. stop_prefix detaches this callback in either case.",
+      "ranges": [
+        {
+          "code": "x$format=pe_format(x$prefix,x$declared); x$parsed=T;\nif ( x$format==\"\" ) reject_context(x); else release_prefix(x);\nstop_prefix(f); return;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "pe-format-entry",
+          "label": "Follow the actual PE classifier definition"
+        },
+        [
+          "reject-context",
+          "Release a rejected format context"
+        ],
+        [
+          "release-prefix",
+          "Release only bytes for an accepted format"
+        ],
+        [
+          "stop-prefix",
+          "Detach the finished prefix callback"
+        ]
+      ]
+    },
+    {
+      "id": "prefix-data-exhausted",
+      "title": "Wait for another callback when input is exhausted",
+      "description": "If cursor has consumed the complete data string before the required extent is present, the handler returns with the existing bounded prefix retained. A future callback restarts a cursor on new data.",
+      "ranges": [
+        {
+          "code": "if ( cursor==|data| ) return;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "prefix-take",
+      "title": "Select the smaller remaining span",
+      "description": "remaining is need minus retained prefix length and available is the unconsumed callback length. take is their minimum, bounding each append to the current stage and current callback.",
+      "ranges": [
+        {
+          "code": "local remaining=need-|x$prefix|;\nlocal available=|data|-cursor;\nlocal take=available<remaining ? available : remaining;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "prefix-copy",
+      "title": "Append only the selected callback span",
+      "description": "part(data,cursor,take) supplies exactly the next span, cat appends it to x$prefix and cursor advances by take. The loop can now request the next stage from the newly available header fields.",
+      "ranges": [
+        {
+          "code": "x$prefix=cat(x$prefix,part(data,cursor,take)); cursor+=take;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Follow the zero based slice definition"
+        }
+      ]
+    },
+    {
+      "id": "prefix-accounting",
+      "title": "Account each retained byte and peak",
+      "description": "take is added to retained_prefix_bytes and may update peak_retained_prefix_bytes. release_prefix subtracts the retained string length when parsing ends or context cleanup occurs.",
+      "ranges": [
+        {
+          "code": "health$retained_prefix_bytes+=take;\nif ( health$retained_prefix_bytes>health$peak_retained_prefix_bytes ) health$peak_retained_prefix_bytes=health$retained_prefix_bytes;"
+        }
+      ],
+      "links": [
+        [
+          "release-prefix",
+          "Return the retained byte budget"
+        ]
+      ]
+    },
+    {
+      "id": "http-completion-context",
+      "title": "Select the responder HTTP completion context",
+      "description": "http_message_done at priority 0 ignores originator completion and missing HTTP or context state. x refers to the admitted response context.",
+      "ranges": [
+        {
+          "code": "event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=0\n{\nif ( is_orig || ! c?$http || ! c$http?$pfd_context ) return;\nlocal x=c$http$pfd_context;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "http-completion-flag",
+      "title": "Record the HTTP completion gate",
+      "description": "x$http_done becomes T independently of native file removal. finish still waits for file_done on an otherwise eligible context.",
+      "ranges": [
+        {
+          "code": "x$http_done=T;"
+        }
+      ],
+      "links": [
+        [
+          "finish-both-gates",
+          "Wait for the other completion flag"
+        ]
+      ]
+    },
+    {
+      "id": "http-completion-quality",
+      "title": "Require complete HTTP bytes and the same transaction",
+      "description": "An interruption, content gap, body length unequal to declared, changed transaction depth or UID, multiple response files or bad final headers sets x$bad. These checks qualify the completed response, including metadata changes after file admission.",
+      "ranges": [
+        {
+          "code": "if ( stat$interrupted || stat$content_gap_length!=0 || stat$body_length!=x$declared ||\nc$http$trans_depth!=x$depth || c$uid!=x$uid || c$http$pfd_headers$files!=1 || c$http$pfd_headers$bad ) x$bad=T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "http-finish",
+      "title": "Evaluate completion after HTTP quality checks",
+      "description": "finish receives the shared context after the HTTP flag and quality state are updated. It either waits for file completion, rejects bad state or makes the final Notice decision.",
+      "ranges": [
+        {
+          "code": "finish(x);",
+          "before": "c$http$trans_depth!=x$depth || c$uid!=x$uid || c$http$pfd_headers$files!=1 || c$http$pfd_headers$bad ) x$bad=T;"
+        }
+      ],
+      "links": [
+        [
+          "finish-released",
+          "Enter the actual finalization definition"
+        ]
+      ]
+    },
+    {
+      "id": "file-completion-context",
+      "title": "Retrieve state at native file removal",
+      "description": "file_state_remove at priority 0 returns for files without a context and otherwise retrieves the same x used by HTTP completion.",
+      "ranges": [
+        {
+          "code": "event file_state_remove(f: fa_file) &priority=0\n{\nif ( ! f?$pfd_context ) return;\nlocal x=f$pfd_context;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "file-completion-counts",
+      "title": "Record completion and native observed counts",
+      "description": "file_done becomes T and seen receives f$seen_bytes. total receives f$total_bytes only when present; otherwise bad becomes T. completion_ok requires both native counts to equal the declared HTTP byte count.",
+      "ranges": [
+        {
+          "code": "x$file_done=T; x$seen=f$seen_bytes;\nif ( f?$total_bytes ) x$total=f$total_bytes; else x$bad=T;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "completion-definition",
+          "label": "Check both native counts against declared bytes"
+        },
+        [
+          "notice-arguments",
+          "Trace seen into observed_bytes"
+        ]
+      ]
+    },
+    {
+      "id": "file-completion-quality",
+      "title": "Require a complete parsed native file",
+      "description": "Any missing bytes, overflow bytes, timed out file info or unset parsed flag sets bad. The finding path therefore requires complete native file evidence and a completed prefix parse.",
+      "ranges": [
+        {
+          "code": "if ( f$missing_bytes!=0 || f$overflow_bytes!=0 || f$info$timedout || ! x$parsed ) x$bad=T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "file-finish",
+      "title": "Evaluate completion after native file checks",
+      "description": "finish receives x after native flags and counts have been recorded. Either callback order reaches the same both completion and exact count predicate.",
+      "ranges": [
+        {
+          "code": "finish(x);",
+          "before": "if ( f$missing_bytes!=0 || f$overflow_bytes!=0 || f$info$timedout || ! x$parsed ) x$bad=T;"
+        }
+      ],
+      "links": [
+        [
+          "finish-released",
+          "Enter the actual finalization definition"
+        ]
+      ]
+    },
+    {
+      "id": "file-gap-rejection",
+      "title": "Reject a file gap immediately",
+      "description": "file_gap rejects the attached context when one exists. Immediate cleanup releases its prefix and context budgets even if a completion callback has not arrived.",
+      "ranges": [
+        {
+          "code": "event file_gap(f: fa_file, offset: count, len: count)\n{ if ( f?$pfd_context ) reject_context(f$pfd_context); }"
+        }
+      ],
+      "links": [
+        [
+          "reject-context",
+          "Use the shared rejection definition"
+        ]
+      ]
+    },
+    {
+      "id": "file-overflow-rejection",
+      "title": "Reject reassembly overflow immediately",
+      "description": "file_reassembly_overflow rejects any attached context. This converges on the same idempotent release used by prefix and completion failures.",
+      "ranges": [
+        {
+          "code": "event file_reassembly_overflow(f: fa_file, offset: count, skipped: count)\n{ if ( f?$pfd_context ) reject_context(f$pfd_context); }"
+        }
+      ],
+      "links": [
+        [
+          "reject-context",
+          "Release the overflow context"
+        ]
+      ]
+    },
+    {
+      "id": "file-timeout-rejection",
+      "title": "Reject a native file timeout immediately",
+      "description": "file_timeout at priority 0 rejects an attached context. Later queued events see released state and cannot reopen a finding.",
+      "ranges": [
+        {
+          "code": "event file_timeout(f: fa_file) &priority=0\n{ if ( f?$pfd_context ) reject_context(f$pfd_context); }"
+        }
+      ],
+      "links": [
+        [
+          "reject-context",
+          "Release the timed out context"
+        ],
+        [
+          "prefix-tombstone",
+          "Guard queued byte callbacks"
+        ]
+      ]
+    }
+  ],
+  "notice": {
+    "msg": [
+      "PE content advertised with a document or image filename"
+    ],
+    "sub": [
+      "fuid=",
+      {
+        "token": "{fuid}",
+        "label": "Native file FUID captured at admission",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$fuid"
+          }
+        ]
+      },
+      ";uid=",
+      {
+        "token": "{uid}",
+        "label": "Connection UID captured at admission",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$uid"
+          }
+        ]
+      },
+      ";filename_hex=",
+      {
+        "token": "{filename_hex}",
+        "label": "Selected filename bytes encoded as hexadecimal",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "bytestring_to_hexstr(x$filename)"
+          }
+        ]
+      },
+      ";filename_source=content-disposition;format=",
+      {
+        "token": "{format}",
+        "label": "Accepted PE format rendered as PE32 or PE32+",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$format==\"pe32\" ? \"PE32\" : \"PE32+\""
+          }
+        ]
+      },
+      ";observed_bytes=",
+      {
+        "token": "{observed_bytes}",
+        "label": "Native file seen byte count",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$seen"
+          }
+        ]
+      },
+      ";declared_bytes=",
+      {
+        "token": "{declared_bytes}",
+        "label": "Checked Content-Length byte count",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$declared"
+          }
+        ]
+      },
+      ";orig_p=",
+      {
+        "token": "{orig_p}",
+        "label": "Connection originator port",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$id$orig_p"
+          }
+        ]
+      },
+      ";resp_p=",
+      {
+        "token": "{resp_p}",
+        "label": "Connection responder port",
+        "sources": [
+          {
+            "anchor": "x$fuid,x$uid,bytestring_to_hexstr(x$filename),x$format==\"pe32\" ? \"PE32\" : \"PE32+\",x$seen,x$declared,x$id$orig_p,x$id$resp_p),",
+            "text": "x$id$resp_p"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,12 @@
 # Cloudflare Suspicious File Delivery
 
-This directory contains detection engineering artifacts related to suspicious file delivery through Cloudflare-managed hosting surfaces.
+This directory contains detection engineering artifacts related to suspicious file delivery through Cloudflare hosting surfaces.
+
+## Try a PCAP first
+
+Download [scenario 6](scenario6_zeek_test_%20also_triggers_Suricata2068664.pcap) and replay it with the included Zeek script on stock Zeek 9.0.1. The current source produces two `CLOUDFLARE_STAGE::Suspicious_Download_After_Cloudflare_Domain` Notices. Open the PCAP in Wireshark before running any reproduction tool if you prefer.
+
+[Scenario 8](scenario8_fires%20all_4_Suricata.pcap) is a Suricata case and produces zero Notices with this Zeek script. That result does not establish that its content is benign. These are the existing public test captures; their packet bytes have not been rewritten. Optional generation and regression tools remain secondary to the ready files.
 
 The current focus is on HTTP requests to Cloudflare family hostnames such as:
 

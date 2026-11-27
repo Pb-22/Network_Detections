@@ -1,0 +1,503 @@
+{
+  "schema_version": 1,
+  "path": "Earthworm/Zeek_Script.md",
+  "title": "EarthWorm-like TCP control sequences",
+  "description": "Tracks two independent TCP byte sequences by connection UID. Setup output follows originator and responder six-byte control chunks. Request output follows its own two six-byte controls and an exact four-byte responder chunk. Matching depends on callback chunk boundaries, and partial progress persists until connection-state removal.",
+  "tags": [
+    "TCP",
+    "state machines",
+    "byte strings",
+    "independent example"
+  ],
+  "initialTopic": "contents",
+  "topics": [
+    {
+      "id": "loads",
+      "title": "Load the Notice framework under the EarthWorm module",
+      "ranges": [
+        {
+          "code": "@load base/frameworks/notice\nmodule EarthWorm;"
+        }
+      ],
+      "description": "@load imports the Notice framework used by the later NOTICE calls. module EarthWorm scopes subsequent identifiers, including the notice types and state tables. The script receives TCP payload through tcp_contents and evaluates byte patterns in separate setup and request state machines.",
+      "links": [
+        [
+          "notice-types",
+          "Declare setup and request notice types"
+        ],
+        [
+          "delivery",
+          "Enable TCP content delivery in both directions"
+        ]
+      ]
+    },
+    {
+      "id": "notice-types",
+      "title": "Declare setup and request notice types",
+      "ranges": [
+        {
+          "code": "export {\nredef enum Notice::Type += {\nEarthWorm_Setup_Stage_Control_Sequence,\nEarthWorm_Post_Setup_Request_Stage_SOCKS_Sequence\n};\n}"
+        }
+      ],
+      "description": "export exposes declarations to other scripts. redef enum Notice::Type += adds EarthWorm_Setup_Stage_Control_Sequence and EarthWorm_Post_Setup_Request_Stage_SOCKS_Sequence to Zeek's notice enumeration. Each type identifies output from its own state machine. The setup notice follows its acknowledgement; the request notice follows the request controls and exact four-byte responder chunk.",
+      "links": [
+        [
+          "setup-notice",
+          "Format setup endpoints and a per-UID notice identifier"
+        ],
+        [
+          "request-notice",
+          "Emit the request finding with its own identifier prefix"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "delivery",
+      "title": "Enable TCP content delivery in both directions",
+      "ranges": [
+        {
+          "code": "redef tcp_content_deliver_all_orig = T;\nredef tcp_content_deliver_all_resp = T;"
+        }
+      ],
+      "description": "redef changes existing configuration values, and T means Boolean true. tcp_content_deliver_all_orig and tcp_content_deliver_all_resp enable tcp_contents delivery for both sides of TCP connections across service ports. This broad delivery sends reassembled payload into the scripting layer. The handler evaluates each callback's chunk using the byte lengths and prefixes declared below.",
+      "links": [
+        [
+          "contents",
+          "Evaluate each reassembled TCP chunk by direction"
+        ],
+        [
+          "six-byte",
+          "Require a six-byte chunk with the selected prefix"
+        ]
+      ]
+    },
+    {
+      "id": "setup-state",
+      "title": "Store setup stage and alert status by connection UID",
+      "ranges": [
+        {
+          "code": "global setup_stage: table[string] of count &default=0;\nglobal setup_alerted: table[string] of bool &default=F;"
+        }
+      ],
+      "description": "setup_stage maps UID strings to count values, and setup_alerted maps them to bool values. &default=0 and &default=F supply values for missing keys; assignments create stored entries. Partial progress persists across intervening chunks for the tracked connection. connection_state_remove deletes the entries when Zeek removes that connection's state.",
+      "links": [
+        [
+          "setup-first",
+          "Advance setup from zero on an originator control"
+        ],
+        [
+          "setup-latch",
+          "Record setup notice emission in a Boolean latch"
+        ],
+        [
+          "cleanup",
+          "Delete setup progress when Zeek removes the connection"
+        ]
+      ]
+    },
+    {
+      "id": "request-state",
+      "title": "Store independent request progress and alert status",
+      "ranges": [
+        {
+          "code": "global req_stage: table[string] of count &default=0;\nglobal req_alerted: table[string] of bool &default=F;"
+        }
+      ],
+      "description": "req_stage and req_alerted use UID keys with count and bool values, defaulting to 0 and F. Their transitions depend on request-sequence chunks and their own stored values, independently of setup_stage. Assignments retain progress and the output latch until connection_state_remove clears them, including on long-lived connections.",
+      "links": [
+        [
+          "request-first",
+          "Start request progress independently of setup"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ],
+        [
+          "cleanup-rest",
+          "Clear both latches and remaining request progress"
+        ]
+      ]
+    },
+    {
+      "id": "prefix",
+      "title": "Check byte-string length before comparing a prefix",
+      "ranges": [
+        {
+          "code": "function has_prefix_2(contents: string, prefix: string): bool\n{\nreturn |contents| >= 2 && sub_bytes(contents, 0, 2) == prefix;\n}"
+        }
+      ],
+      "description": "Zeek strings hold raw bytes. |contents| measures byte length, and && requires at least two bytes before sub_bytes(contents, 0, 2) extracts the first two. The special start value 0 selects the first byte. Equality compares that slice with prefix. The caller separately checks the complete chunk's required six-byte length.",
+      "links": [
+        [
+          "six-byte",
+          "Require a six-byte chunk with the selected prefix"
+        ],
+        [
+          "socks-bytes",
+          "Match the exact four-byte SOCKS-like chunk"
+        ]
+      ]
+    },
+    {
+      "id": "six-byte",
+      "title": "Require a six-byte chunk with the selected prefix",
+      "ranges": [
+        {
+          "code": "function is_6b_control(contents: string, prefix: string): bool\n{\nreturn |contents| == 6 && has_prefix_2(contents, prefix);\n}"
+        }
+      ],
+      "description": "is_6b_control returns bool. && requires |contents| == 6 and a true two-byte prefix comparison. The final four bytes can hold any values. Each control must arrive as a complete six-byte callback chunk to satisfy this predicate; splitting or combining messages changes the delivered length and can cause the test to fail.",
+      "links": [
+        [
+          "prefix",
+          "Check byte-string length before comparing a prefix"
+        ],
+        [
+          "contents",
+          "Evaluate each reassembled TCP chunk by direction"
+        ],
+        [
+          "setup-first",
+          "Advance setup from zero on an originator control"
+        ]
+      ]
+    },
+    {
+      "id": "socks-bytes",
+      "title": "Match the exact four-byte SOCKS-like chunk",
+      "ranges": [
+        {
+          "code": "function is_4b_socks(contents: string): bool\n{\nreturn |contents| == 4 && contents == \"\\x05\\x02\\x00\\x01\";\n}"
+        }
+      ],
+      "description": "is_4b_socks requires |contents| == 4 and equality with \"\\x05\\x02\\x00\\x01\". Hex escapes encode the four raw bytes in the string literal. A match requires that exact byte sequence in one callback. Split delivery or a chunk containing additional bytes fails the length-and-equality condition.",
+      "links": [
+        [
+          "request-socks",
+          "Require the exact responder chunk before request output"
+        ],
+        [
+          "contents",
+          "Evaluate each reassembled TCP chunk by direction"
+        ]
+      ]
+    },
+    {
+      "id": "contents",
+      "title": "Evaluate each reassembled TCP chunk by direction",
+      "ranges": [
+        {
+          "code": "event tcp_contents(c: connection, is_orig: bool, seq: count, contents: string)\n{\nlocal uid = c$uid;"
+        }
+      ],
+      "description": "The tcp_contents arguments supply a connection, direction bool, sequence count, and raw byte string. c$uid provides the key for both state machines. Zeek delivers in-order reassembled chunks per direction. This handler applies its predicates directly to each delivered chunk, so recognition depends on callback boundaries and visible payload bytes. is_orig distinguishes originator from responder.",
+      "links": [
+        [
+          "delivery",
+          "Enable TCP content delivery in both directions"
+        ],
+        [
+          "six-byte",
+          "Require a six-byte chunk with the selected prefix"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "setup-first",
+      "title": "Advance setup from zero on an originator control",
+      "ranges": [
+        {
+          "code": "# Group 1: setup-stage control sequence\nif ( is_orig && setup_stage[uid] == 0 && is_6b_control(contents, \"\\x01\\x01\") )\nsetup_stage[uid] = 1;"
+        }
+      ],
+      "description": "The && chain requires originator direction, setup_stage[uid] equal to zero, and a six-byte chunk beginning with \\x01\\x01. A missing stage key reads as zero through &default. The assignment advances the stage to one. Subsequent chunks preserve that progress until a matching transition or connection-state cleanup changes it.",
+      "links": [
+        [
+          "setup-state",
+          "Store setup stage and alert status by connection UID"
+        ],
+        [
+          "setup-reply",
+          "Match the responder acknowledgement while the setup latch is false"
+        ]
+      ]
+    },
+    {
+      "id": "setup-reply",
+      "title": "Match the responder acknowledgement while the setup latch is false",
+      "ranges": [
+        {
+          "code": "if ( ! is_orig && setup_stage[uid] == 1 && is_6b_control(contents, \"\\x01\\x02\") && ! setup_alerted[uid] )\n{\nsetup_stage[uid] = 2;"
+        }
+      ],
+      "description": "! is_orig selects responder direction. The other && conditions require setup stage one, a six-byte chunk beginning with \\x01\\x02, and setup_alerted[uid] equal to F. The block advances the stage to two, then creates the setup notice. The four bytes after the prefix can hold any values, and stage one persists across intervening chunks.",
+      "links": [
+        [
+          "setup-notice",
+          "Format setup endpoints and a per-UID notice identifier"
+        ],
+        [
+          "setup-latch",
+          "Record setup notice emission in a Boolean latch"
+        ]
+      ]
+    },
+    {
+      "id": "setup-notice",
+      "title": "Format setup endpoints and a per-UID notice identifier",
+      "ranges": [
+        {
+          "code": "NOTICE([\n$note=EarthWorm_Setup_Stage_Control_Sequence,\n$msg=fmt(\"EarthWorm like setup stage control sequence on %s -> %s uid=%s\", c$id$orig_h, c$id$resp_h, uid),\n$conn=c,\n$identifier=cat(\"ew-setup|\", uid)\n]);"
+        }
+      ],
+      "description": "NOTICE receives a record selecting the setup enumeration member and attaching $conn=c. fmt inserts originator address, responder address, and UID into the setup-sequence message. Chained $ access reads endpoint addresses from c$id. cat(\"ew-setup|\", uid) builds the identifier used by the Notice framework for this connection's setup finding.",
+      "links": [
+        [
+          "setup-latch",
+          "Record setup notice emission in a Boolean latch"
+        ],
+        [
+          "request-notice",
+          "Emit the request finding with its own identifier prefix"
+        ]
+      ]
+    },
+    {
+      "id": "setup-latch",
+      "title": "Record setup notice emission in a Boolean latch",
+      "ranges": [
+        {
+          "code": "setup_alerted[uid] = T;\n}"
+        }
+      ],
+      "description": "setup_alerted[uid] = T stores the latch after the NOTICE call. The earlier ! setup_alerted[uid] condition requires its false value before setup output can occur. This assignment records emission in script state. The request machine continues according to its own req_stage and req_alerted values, and connection removal clears both machines.",
+      "links": [
+        [
+          "setup-reply",
+          "Match the responder acknowledgement while the setup latch is false"
+        ],
+        [
+          "setup-continuation",
+          "Advance setup on the optional responder continuation"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "setup-continuation",
+      "title": "Advance setup on the optional responder continuation",
+      "ranges": [
+        {
+          "code": "# Optional continuation / corroboration.\nif ( ! is_orig && setup_stage[uid] >= 1 && is_6b_control(contents, \"\\x01\\x03\") )\nsetup_stage[uid] = 3;"
+        }
+      ],
+      "description": "The condition requires responder direction, setup_stage[uid] at least one, and a six-byte chunk beginning with \\x01\\x03. A match writes stage three. The setup notice is emitted by the earlier \\x01\\x02 branch. A continuation arriving at stage one moves directly to three, making the acknowledgement branch's stage-one condition fail on later chunks.",
+      "links": [
+        [
+          "setup-reply",
+          "Match the responder acknowledgement while the setup latch is false"
+        ],
+        [
+          "setup-latch",
+          "Record setup notice emission in a Boolean latch"
+        ]
+      ]
+    },
+    {
+      "id": "request-first",
+      "title": "Start request progress independently of setup",
+      "ranges": [
+        {
+          "code": "# Group 2: post-setup request stage SOCKS sequence\nif ( is_orig && req_stage[uid] == 0 && is_6b_control(contents, \"\\x01\\x04\") )\nreq_stage[uid] = 1;"
+        }
+      ],
+      "description": "The && chain requires originator direction, req_stage[uid] equal to zero, and a six-byte chunk beginning with \\x01\\x04. The assignment advances req_stage to one. Its initial zero comes from &default. This transition depends solely on request state, direction, and chunk content, so it can start before any setup controls are observed.",
+      "links": [
+        [
+          "request-state",
+          "Store independent request progress and alert status"
+        ],
+        [
+          "request-reply",
+          "Advance request progress on the responder control"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "request-reply",
+      "title": "Advance request progress on the responder control",
+      "ranges": [
+        {
+          "code": "if ( ! is_orig && req_stage[uid] == 1 && is_6b_control(contents, \"\\x01\\x05\") )\nreq_stage[uid] = 2;"
+        }
+      ],
+      "description": "! is_orig selects responder direction. req_stage[uid] == 1 requires the earlier originator step, and is_6b_control checks a six-byte chunk beginning with \\x01\\x05. A match advances the request stage to two. Separate if statements evaluate sequentially on each callback; the final request step requires a later chunk of exactly four bytes.",
+      "links": [
+        [
+          "request-socks",
+          "Require the exact responder chunk before request output"
+        ],
+        [
+          "six-byte",
+          "Require a six-byte chunk with the selected prefix"
+        ]
+      ]
+    },
+    {
+      "id": "request-socks",
+      "title": "Require the exact responder chunk before request output",
+      "ranges": [
+        {
+          "code": "if ( ! is_orig && req_stage[uid] == 2 && is_4b_socks(contents) && ! req_alerted[uid] )\n{\nreq_stage[uid] = 3;"
+        }
+      ],
+      "description": "The && chain requires responder direction, req_stage two, the exact four-byte is_4b_socks match, and req_alerted equal to F. The block sets stage three before building the notice. Stage two persists across intervening chunks for as long as Zeek retains the connection state. This final check uses that stored progress.",
+      "links": [
+        [
+          "socks-bytes",
+          "Match the exact four-byte SOCKS-like chunk"
+        ],
+        [
+          "request-notice",
+          "Emit the request finding with its own identifier prefix"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "request-notice",
+      "title": "Emit the request finding with its own identifier prefix",
+      "ranges": [
+        {
+          "code": "NOTICE([\n$note=EarthWorm_Post_Setup_Request_Stage_SOCKS_Sequence,\n$msg=fmt(\"EarthWorm like post setup request stage SOCKS sequence on %s -> %s uid=%s\", c$id$orig_h, c$id$resp_h, uid),\n$conn=c,\n$identifier=cat(\"ew-request|\", uid)\n]);"
+        }
+      ],
+      "description": "NOTICE selects EarthWorm_Post_Setup_Request_Stage_SOCKS_Sequence and attaches the observed connection. fmt supplies endpoint addresses and UID; cat(\"ew-request|\", uid) gives this output a distinct identifier prefix. Reaching the call requires the request machine's originator control, responder control, and exact four-byte responder chunk, independently of setup progress.",
+      "links": [
+        [
+          "request-latch",
+          "Latch request output and finish the TCP callback"
+        ],
+        [
+          "notice-types",
+          "Declare setup and request notice types"
+        ],
+        [
+          "independent",
+          "Follow the independent setup and request transitions"
+        ]
+      ]
+    },
+    {
+      "id": "request-latch",
+      "title": "Latch request output and finish the TCP callback",
+      "ranges": [
+        {
+          "code": "req_alerted[uid] = T;\n}\n}"
+        }
+      ],
+      "description": "req_alerted[uid] = T records emission for the request sequence. The closing braces end its guarded block and the tcp_contents handler. Later callbacks see the retained stage-three value and true latch for the UID. These values persist until connection_state_remove deletes their entries.",
+      "links": [
+        [
+          "request-socks",
+          "Require the exact responder chunk before request output"
+        ],
+        [
+          "cleanup-rest",
+          "Clear both latches and remaining request progress"
+        ]
+      ]
+    },
+    {
+      "id": "cleanup",
+      "title": "Delete setup progress when Zeek removes the connection",
+      "ranges": [
+        {
+          "code": "event connection_state_remove(c: connection)\n{\nlocal uid = c$uid;\ndelete setup_stage[uid];"
+        }
+      ],
+      "description": "connection_state_remove runs when Zeek discards connection state. The handler reads c$uid and delete removes its setup_stage entry. Deleting an absent entry is harmless, covering connections at any stage of progress. This lifecycle event ends the stored stage's retention, including partial progress carried by long-lived connections.",
+      "links": [
+        [
+          "cleanup-rest",
+          "Clear both latches and remaining request progress"
+        ],
+        [
+          "setup-state",
+          "Store setup stage and alert status by connection UID"
+        ]
+      ]
+    },
+    {
+      "id": "cleanup-rest",
+      "title": "Clear both latches and remaining request progress",
+      "ranges": [
+        {
+          "code": "delete setup_alerted[uid];\ndelete req_stage[uid];\ndelete req_alerted[uid];\n}"
+        }
+      ],
+      "description": "The remaining delete statements remove setup_alerted, req_stage, and req_alerted for the UID. Together with setup_stage deletion, cleanup releases entries from all four tables for this connection. The global tables continue serving other UIDs. Subsequent missing-key lookups return the declared defaults; assignments create new stored entries.",
+      "links": [
+        [
+          "request-state",
+          "Store independent request progress and alert status"
+        ],
+        [
+          "contents",
+          "Evaluate each reassembled TCP chunk by direction"
+        ]
+      ]
+    },
+    {
+      "id": "independent",
+      "title": "Follow the independent setup and request transitions",
+      "ranges": [
+        {
+          "code": "if ( is_orig && setup_stage[uid] == 0 && is_6b_control(contents, \"\\x01\\x01\") )\nsetup_stage[uid] = 1;"
+        },
+        {
+          "code": "if ( is_orig && req_stage[uid] == 0 && is_6b_control(contents, \"\\x01\\x04\") )\nreq_stage[uid] = 1;"
+        },
+        {
+          "code": "if ( ! is_orig && req_stage[uid] == 2 && is_4b_socks(contents) && ! req_alerted[uid] )\n{\nreq_stage[uid] = 3;"
+        }
+      ],
+      "description": "setup_stage advances on its setup control prefixes, while req_stage starts on its own originator control and reaches output through its responder checks. The request gate uses req_stage and req_alerted, allowing completion independently of setup progress. Each machine requires its controls to arrive as whole callback chunks and retains progress until connection-state cleanup.",
+      "links": [
+        [
+          "setup-first",
+          "Advance setup from zero on an originator control"
+        ],
+        [
+          "request-first",
+          "Start request progress independently of setup"
+        ],
+        [
+          "request-socks",
+          "Require the exact responder chunk before request output"
+        ]
+      ],
+      "concept": true
+    }
+  ],
+  "notice": {}
+}

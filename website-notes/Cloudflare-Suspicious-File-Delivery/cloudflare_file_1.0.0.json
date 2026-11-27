@@ -1,0 +1,901 @@
+{
+  "schema_version": 1,
+  "path": "Cloudflare-Suspicious-File-Delivery/cloudflare_file_1.0.0.zeek",
+  "title": "Cloudflare follow-on file delivery",
+  "description": "Remembers a client address observed with a listed Cloudflare developer or tunnel hostname. A responder HTTP header raises a notice when that address has recent hostname context and the saved URI, MIME value, or Content-Disposition matches a configured pattern. TLS SNI and the HTTP record supply hostname observations.",
+  "tags": [
+    "HTTP",
+    "TLS",
+    "Cloudflare",
+    "file delivery"
+  ],
+  "initialTopic": "http",
+  "topics": [
+    {
+      "id": "loads",
+      "title": "Load HTTP and TLS scripts under a module",
+      "ranges": [
+        {
+          "code": "@load base/protocols/http\n@load base/protocols/ssl\nmodule CLOUDFLARE_STAGE;"
+        }
+      ],
+      "description": "@load imports Zeek's base HTTP and SSL/TLS scripts, which provide the connection records and events used below. module CLOUDFLARE_STAGE scopes subsequent identifiers. The TLS handler reads server_name to seed hostname context; HTTP handlers save request details and evaluate response headers.",
+      "links": [
+        [
+          "tls",
+          "Check nested TLS fields before reading SNI"
+        ],
+        [
+          "http",
+          "Handle an HTTP request when its analysis record is present"
+        ]
+      ]
+    },
+    {
+      "id": "notice-type",
+      "title": "Add a Cloudflare follow-on notice type",
+      "ranges": [
+        {
+          "code": "export {\nredef enum Notice::Type += {\nSuspicious_Download_After_Cloudflare_Domain\n};"
+        }
+      ],
+      "description": "export exposes the enclosed declarations to other scripts. redef enum Notice::Type += adds Suspicious_Download_After_Cloudflare_Domain to the framework's existing enumeration. The later response-header handler uses this member when a recent client hostname observation and a configured file indicator satisfy the notice conditions.",
+      "links": [
+        [
+          "notice",
+          "Submit the hostname and file-indicator finding"
+        ]
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Set sequence age and notice suppression intervals",
+      "ranges": [
+        {
+          "code": "const sequence_window: interval = 5mins &redef;\nconst notice_suppress: interval = 5mins &redef;\n}"
+        }
+      ],
+      "description": "interval represents a duration. sequence_window and notice_suppress both default to 5mins, and &redef allows site policy to override them. sequence_window bounds the age of a usable hostname observation. notice_suppress controls repeated framework output. Separately, cf_state retains entries with a ten-minute write-expiration timer.",
+      "links": [
+        [
+          "state-table",
+          "Index recent seeds by client address with write expiration"
+        ],
+        [
+          "sequence-age",
+          "Compare observation age with the sequence window"
+        ],
+        [
+          "suppression",
+          "Build a suppression key from client, hostname, and match"
+        ]
+      ]
+    },
+    {
+      "id": "state-record",
+      "title": "Store the hostname observation as a typed record",
+      "ranges": [
+        {
+          "code": "type CFState: record {\nts: time;\nhost: string;\ndest_ip: addr;\nuid: string;\nvia: string;\n};"
+        }
+      ],
+      "description": "CFState groups an observation's timestamp, hostname, destination address, connection UID, and method. ts has type time, dest_ip has type addr, and host, uid, and via are strings. Later output reads the retained hostname and observation method; correlation selects this record by the client address used as its table key.",
+      "links": [
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ],
+        [
+          "notice-context",
+          "Format six values into notice context"
+        ]
+      ]
+    },
+    {
+      "id": "state-table",
+      "title": "Index recent seeds by client address with write expiration",
+      "ranges": [
+        {
+          "code": "global cf_state: table[addr] of CFState &write_expire=10mins;"
+        }
+      ],
+      "description": "global cf_state: table[addr] of CFState maps each client IP to one observation record. &write_expire=10mins bases expiration on the last write. A later seed replaces the earlier record for that address and refreshes retention. Each worker holds its own table, and clients sharing a visible address share that correlation key.",
+      "links": [
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ],
+        [
+          "sequence-age",
+          "Compare observation age with the sequence window"
+        ]
+      ]
+    },
+    {
+      "id": "connection-fields",
+      "title": "Add optional request context to the connection record",
+      "ranges": [
+        {
+          "code": "redef record connection += {\ncf_req_uri: string &optional;\ncf_req_method: string &optional;\n};"
+        }
+      ],
+      "description": "redef record connection += adds cf_req_uri and cf_req_method to Zeek's connection type. Both are strings with &optional, allowing later code to test presence with ?$ before reading with $. Each new request overwrites this single connection-level URI and method pair, including on connections carrying pipelined requests.",
+      "links": [
+        [
+          "http-save",
+          "Save the original request URI and method"
+        ],
+        [
+          "header-normalize",
+          "Lowercase the header and retrieve the saved URI"
+        ]
+      ]
+    },
+    {
+      "id": "normalize-host",
+      "title": "Lowercase the hostname and remove a trailing dot",
+      "ranges": [
+        {
+          "code": "function norm_host(h: string): string\n{\nlocal x = to_lower(h);\nif ( /[.]$/ in x )\nx = sub(x, /[.]$/, \"\");\nreturn x;\n}"
+        }
+      ],
+      "description": "norm_host accepts and returns a string. to_lower(h) initializes local x. /[.]$/ matches a literal dot at the end, and sub replaces that dot with \"\". The returned string keeps other characters, including any :port suffix supplied in a Host value.",
+      "links": [
+        [
+          "hosts",
+          "Recognize exact base service names"
+        ],
+        [
+          "host-suffixes",
+          "Match subdomains with explicit domain boundaries"
+        ]
+      ]
+    },
+    {
+      "id": "hosts",
+      "title": "Recognize exact base service names",
+      "ranges": [
+        {
+          "code": "function is_suspicious_cloudflare_host(h: string): bool\n{\nlocal x = norm_host(h);\nif ( x == \"trycloudflare.com\" ) return T;\nif ( x == \"workers.dev\" ) return T;\nif ( x == \"pages.dev\" ) return T;\nif ( x == \"r2.dev\" ) return T;"
+        }
+      ],
+      "description": "The function calls norm_host and compares the result with trycloudflare.com, workers.dev, pages.dev, and r2.dev. == tests exact string equality, and each matching if returns T. These names supply the hostname context for a sequence; a later eligible HTTP response header supplies the file indicator needed for output.",
+      "links": [
+        [
+          "host-suffixes",
+          "Match subdomains with explicit domain boundaries"
+        ],
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ]
+      ]
+    },
+    {
+      "id": "host-suffixes",
+      "title": "Match subdomains with explicit domain boundaries",
+      "ranges": [
+        {
+          "code": "if ( /(^|[.])trycloudflare[.]com$/ in x ) return T;\nif ( /(^|[.])workers[.]dev$/ in x ) return T;\nif ( /(^|[.])pages[.]dev$/ in x ) return T;\nif ( /(^|[.])r2[.]dev$/ in x ) return T;\nreturn F;\n}"
+        }
+      ],
+      "description": "(^|[.]) accepts the start of the hostname or a preceding dot, [.] matches literal dots, and $ anchors the service domain at the end. pattern in x searches the normalized hostname. These expressions accept subdomains of the four listed services. return F handles names outside those exact base domains and suffix patterns.",
+      "links": [
+        [
+          "normalize-host",
+          "Lowercase the hostname and remove a trailing dot"
+        ],
+        [
+          "tls-seed",
+          "Seed a client window from the TLS server name"
+        ],
+        [
+          "http-host",
+          "Seed from the HTTP record's available hostname"
+        ]
+      ]
+    },
+    {
+      "id": "extension-input",
+      "title": "Lowercase the saved original URI",
+      "ranges": [
+        {
+          "code": "function is_suspicious_extension(path: string): bool\n{\nlocal p = to_lower(path);"
+        }
+      ],
+      "description": "is_suspicious_extension takes a string named path and returns bool. to_lower(path) makes the listed extension checks case-insensitive. Its caller supplies the saved original_URI, so percent escapes and query text remain in the tested string. Each later expression searches that complete lowercased URI for a listed suffix pattern.",
+      "links": [
+        [
+          "extensions",
+          "Accept a listed suffix with an optional query string"
+        ],
+        [
+          "http-save",
+          "Save the original request URI and method"
+        ]
+      ]
+    },
+    {
+      "id": "extensions",
+      "title": "Accept a listed suffix with an optional query string",
+      "ranges": [
+        {
+          "code": "if ( /[.]wsf([?].*)?$/ in p ) return T;\nif ( /[.]bat([?].*)?$/ in p ) return T;\nif ( /[.]cmd([?].*)?$/ in p ) return T;\nif ( /[.]ps1([?].*)?$/ in p ) return T;\nif ( /[.]py([?].*)?$/ in p ) return T;\nif ( /[.]js([?].*)?$/ in p ) return T;\nif ( /[.]vbs([?].*)?$/ in p ) return T;\nif ( /[.]url([?].*)?$/ in p ) return T;"
+        }
+      ],
+      "description": "Each regular-expression test returns T on a match. [.] marks the extension dot, ([?].*)? allows a query suffix, and $ anchors the end. The listed suffixes are wsf, bat, cmd, ps1, py, js, vbs, and url. This flag contributes URI text evidence to the later response-header decision.",
+      "links": [
+        [
+          "extension-negative",
+          "Return false after the extension tests finish"
+        ],
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ]
+      ]
+    },
+    {
+      "id": "extension-negative",
+      "title": "Return false after the extension tests finish",
+      "ranges": [
+        {
+          "code": "return F;\n}",
+          "before": "if ( /[.]url([?].*)?$/ in p ) return T;"
+        }
+      ],
+      "description": "return F supplies the result when every preceding extension test falls through. The caller also evaluates MIME and Content-Disposition indicators. Any one of the three flags can satisfy the final decision, so response processing continues through those checks after a false extension result.",
+      "links": [
+        [
+          "response-mime",
+          "Match Content-Type and preserve URI context"
+        ],
+        [
+          "response-disposition",
+          "Search Content-Disposition for a listed filename fragment"
+        ],
+        [
+          "response-decision",
+          "Require at least one indicator flag"
+        ]
+      ]
+    },
+    {
+      "id": "mime-broad",
+      "title": "Match binary, text, and batch MIME strings",
+      "ranges": [
+        {
+          "code": "function is_suspicious_mime(ct: string): bool\n{\nlocal x = to_lower(ct);\nif ( /application\\/octet-stream/ in x ) return T;\nif ( /text\\/plain/ in x ) return T;\nif ( /application\\/x-msdownload/ in x ) return T;\nif ( /application\\/x-bat/ in x ) return T;\nif ( /application\\/x-batch/ in x ) return T;"
+        }
+      ],
+      "description": "The helper lowercases the Content-Type value and searches for selected MIME strings. Escaped slashes represent the slash within each MIME label. A hit returns T. The list includes broad labels such as application/octet-stream and text/plain, allowing generic binary or plain-text content labels to contribute a MIME indicator.",
+      "links": [
+        [
+          "mime-script",
+          "Match scripting MIME strings and return a Boolean"
+        ],
+        [
+          "response-mime",
+          "Match Content-Type and preserve URI context"
+        ]
+      ]
+    },
+    {
+      "id": "mime-script",
+      "title": "Match scripting MIME strings and return a Boolean",
+      "ranges": [
+        {
+          "code": "if ( /application\\/x-python/ in x ) return T;\nif ( /text\\/x-python/ in x ) return T;\nif ( /application\\/javascript/ in x ) return T;\nif ( /text\\/javascript/ in x ) return T;\nif ( /application\\/x-javascript/ in x ) return T;\nif ( /text\\/vbscript/ in x ) return T;\nreturn F;\n}"
+        }
+      ],
+      "description": "The remaining patterns search for Python, JavaScript, and VBScript MIME strings. A hit returns T; falling through all tests returns F. These unanchored searches also accept values containing parameters or surrounding text. The response handler invokes this helper for Content-Type headers and combines its result with the other indicator flags.",
+      "links": [
+        [
+          "response-mime",
+          "Match Content-Type and preserve URI context"
+        ],
+        [
+          "response-decision",
+          "Require at least one indicator flag"
+        ]
+      ]
+    },
+    {
+      "id": "sequence",
+      "title": "Check client membership before reading seed fields",
+      "ranges": [
+        {
+          "code": "function sequence_is_live(orig: addr): bool\n{\nif ( orig !in cf_state )\nreturn F;"
+        }
+      ],
+      "description": "sequence_is_live accepts an addr and returns bool. orig !in cf_state returns F for a client address lacking a retained observation. Processing continues to the age check when membership is present, making the subsequent cf_state[orig] lookup valid. Here in tests table membership; elsewhere the same keyword searches strings for patterns.",
+      "links": [
+        [
+          "state-table",
+          "Index recent seeds by client address with write expiration"
+        ],
+        [
+          "sequence-age",
+          "Compare observation age with the sequence window"
+        ]
+      ]
+    },
+    {
+      "id": "sequence-age",
+      "title": "Compare observation age with the sequence window",
+      "ranges": [
+        {
+          "code": "if ( network_time() - cf_state[orig]$ts > sequence_window )\nreturn F;\nreturn T;\n}"
+        }
+      ],
+      "description": "network_time() - cf_state[orig]$ts subtracts timestamps to produce an interval. Ages greater than sequence_window return F; other values return T, including equality and future-dated seed timestamps. This helper leaves the entry in place. The table's write-expiration timer independently controls retention, while client address remains the correlation key.",
+      "links": [
+        [
+          "settings",
+          "Set sequence age and notice suppression intervals"
+        ],
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ],
+        [
+          "response-sequence",
+          "Require recent seed context for the originator address"
+        ]
+      ]
+    },
+    {
+      "id": "seed",
+      "title": "Replace the client address record with current context",
+      "ranges": [
+        {
+          "code": "function seed_sequence(orig: addr, dest: addr, uid: string, host: string, via: string)\n{\ncf_state[orig] = [$ts=network_time(), $host=host, $dest_ip=dest, $uid=uid, $via=via];\n}"
+        }
+      ],
+      "description": "seed_sequence accepts typed endpoint, UID, hostname, and method arguments. The [$ts=..., $host=..., ...] initializer fills a CFState record using the table's expected value type. Assignment stores the latest observation at cf_state[orig]. via records \"ssl\" or \"http\", and the write refreshes the table entry's retention timer.",
+      "links": [
+        [
+          "state-record",
+          "Store the hostname observation as a typed record"
+        ],
+        [
+          "state-table",
+          "Index recent seeds by client address with write expiration"
+        ],
+        [
+          "response-sequence",
+          "Require recent seed context for the originator address"
+        ]
+      ]
+    },
+    {
+      "id": "tls",
+      "title": "Check nested TLS fields before reading SNI",
+      "ranges": [
+        {
+          "code": "event ssl_established(c: connection)\n{\nif ( c?$ssl == F )\nreturn;\nif ( c$ssl?$server_name == F )\nreturn;"
+        }
+      ],
+      "description": "ssl_established receives a connection record. c?$ssl tests for its optional TLS analysis record; c$ssl?$server_name then tests for the nested SNI field. Each == F branch returns early. Processing reaches hostname normalization when both fields are present, giving the seed handler a server name from the TLS observation.",
+      "links": [
+        [
+          "tls-seed",
+          "Seed a client window from the TLS server name"
+        ],
+        [
+          "connection-fields",
+          "Add optional request context to the connection record"
+        ]
+      ]
+    },
+    {
+      "id": "tls-seed",
+      "title": "Seed a client window from the TLS server name",
+      "ranges": [
+        {
+          "code": "local host = norm_host(c$ssl$server_name);\nif ( is_suspicious_cloudflare_host(host) )\nseed_sequence(c$id$orig_h, c$id$resp_h, c$uid, host, \"ssl\");\n}"
+        }
+      ],
+      "description": "The handler normalizes c$ssl$server_name and calls the hostname predicate. A match invokes seed_sequence with the originator address, responder address, connection UID, hostname, and literal \"ssl\" method. Nested $ accesses obtain the endpoint addresses. The resulting client-address entry can supply context to later eligible HTTP response-header events.",
+      "links": [
+        [
+          "host-suffixes",
+          "Match subdomains with explicit domain boundaries"
+        ],
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ]
+      ]
+    },
+    {
+      "id": "http",
+      "title": "Handle an HTTP request when its analysis record is present",
+      "ranges": [
+        {
+          "code": "event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)\n{\nif ( c?$http == F )\nreturn;"
+        }
+      ],
+      "description": "http_request receives method, original_URI, unescaped_URI, and version arguments. The c?$http guard requires the connection's HTTP analysis record before processing continues. The handler then saves request details and tests the record's stored hostname. The request-line event occurs before the current request's Host header is delivered.",
+      "links": [
+        [
+          "http-save",
+          "Save the original request URI and method"
+        ],
+        [
+          "http-host",
+          "Seed from the HTTP record's available hostname"
+        ]
+      ]
+    },
+    {
+      "id": "http-save",
+      "title": "Save the original request URI and method",
+      "ranges": [
+        {
+          "code": "c$cf_req_uri = original_URI;\nc$cf_req_method = method;"
+        }
+      ],
+      "description": "The two assignments copy original_URI and method into the optional connection fields declared earlier. They run before the Host-presence guard, so request details are saved whenever the HTTP record is present. Later requests replace this same URI and method pair, which the response-header handler reads as connection-level context.",
+      "links": [
+        [
+          "connection-fields",
+          "Add optional request context to the connection record"
+        ],
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ]
+      ]
+    },
+    {
+      "id": "http-host",
+      "title": "Seed from the HTTP record's available hostname",
+      "ranges": [
+        {
+          "code": "if ( c$http?$host == F )\nreturn;\nlocal host = norm_host(c$http$host);\nif ( is_suspicious_cloudflare_host(host) )\nseed_sequence(c$id$orig_h, c$id$resp_h, c$uid, host, \"http\");\n}"
+        }
+      ],
+      "description": "c$http?$host checks whether the HTTP record currently holds a hostname. When present, norm_host normalizes it and the service predicate can seed via=\"http\". http_request runs before the current Host header, so the first request may reach this check with an absent field, while a reused connection may retain an earlier hostname.",
+      "links": [
+        [
+          "http",
+          "Handle an HTTP request when its analysis record is present"
+        ],
+        [
+          "seed",
+          "Replace the client address record with current context"
+        ],
+        [
+          "tls-seed",
+          "Seed a client window from the TLS server name"
+        ]
+      ]
+    },
+    {
+      "id": "header-inputs",
+      "title": "Declare local values for each response-header event",
+      "ranges": [
+        {
+          "code": "event http_header(c: connection, is_orig: bool, name: string, value: string)\n{\nlocal orig: addr;\nlocal header_name: string;\nlocal header_val: string;"
+        }
+      ],
+      "description": "http_header receives connection, direction, header name, and value arguments. The local addr and string declarations reserve values for this invocation. Each response header is evaluated separately. A saved URI extension can therefore be tested on several callbacks for one response, with the notice decision made during each eligible header event.",
+      "links": [
+        [
+          "header-flags",
+          "Initialize match flags and context for each header"
+        ],
+        [
+          "response-guards",
+          "Select responder headers with HTTP analysis state"
+        ]
+      ]
+    },
+    {
+      "id": "header-flags",
+      "title": "Initialize match flags and context for each header",
+      "ranges": [
+        {
+          "code": "local uri = \"\";\nlocal ext_hit = F;\nlocal mime_hit = F;\nlocal disp_hit = F;\nlocal matched_on = \"\";\nlocal method = \"\";\nlocal seed: CFState;"
+        }
+      ],
+      "description": "Empty strings initialize uri, matched_on, and method; F initializes ext_hit, mime_hit, and disp_hit. Zeek infers their types from these literals. seed is declared as CFState and assigned after the live-sequence check. Every callback starts with fresh flags, so the final decision combines evidence collected during that header invocation.",
+      "links": [
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ],
+        [
+          "response-mime",
+          "Match Content-Type and preserve URI context"
+        ],
+        [
+          "response-disposition",
+          "Search Content-Disposition for a listed filename fragment"
+        ]
+      ]
+    },
+    {
+      "id": "response-guards",
+      "title": "Select responder headers with HTTP analysis state",
+      "ranges": [
+        {
+          "code": "if ( is_orig )\nreturn;\nif ( c?$http == F )\nreturn;"
+        }
+      ],
+      "description": "is_orig identifies originator-side headers, which return immediately. The c?$http guard then requires the connection's HTTP record. Processing continues for responder headers with HTTP state. The later decision uses recent hostname context and URI or header patterns, so a matching header can qualify at this point in response processing.",
+      "links": [
+        [
+          "response-sequence",
+          "Require recent seed context for the originator address"
+        ],
+        [
+          "response-decision",
+          "Require at least one indicator flag"
+        ]
+      ]
+    },
+    {
+      "id": "response-sequence",
+      "title": "Require recent seed context for the originator address",
+      "ranges": [
+        {
+          "code": "orig = c$id$orig_h;\nif ( ! sequence_is_live(orig) )\nreturn;"
+        }
+      ],
+      "description": "orig = c$id$orig_h copies the originator address into a local addr. ! sequence_is_live(orig) returns early when the membership or age check fails. Continuing requires a retained seed within the helper's age condition. The client address links the observations, including events sharing the same UID or destination.",
+      "links": [
+        [
+          "sequence",
+          "Check client membership before reading seed fields"
+        ],
+        [
+          "sequence-age",
+          "Compare observation age with the sequence window"
+        ],
+        [
+          "notice-context",
+          "Format six values into notice context"
+        ]
+      ]
+    },
+    {
+      "id": "header-normalize",
+      "title": "Lowercase the header and retrieve the saved URI",
+      "ranges": [
+        {
+          "code": "header_name = to_lower(name);\nheader_val = to_lower(value);\nif ( c?$cf_req_uri )\nuri = c$cf_req_uri;"
+        }
+      ],
+      "description": "The handler lowercases name and value for case-insensitive comparisons while retaining value for output. c?$cf_req_uri tests whether the optional saved URI is present before reading it. uri keeps its empty-string default when the field is absent, allowing MIME or disposition checks to supply an indicator independently.",
+      "links": [
+        [
+          "connection-fields",
+          "Add optional request context to the connection record"
+        ],
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ]
+      ]
+    },
+    {
+      "id": "response-uri",
+      "title": "Set the URI flag and preferred match description",
+      "ranges": [
+        {
+          "code": "if ( uri != \"\" && is_suspicious_extension(uri) )\n{\next_hit = T;\nmatched_on = fmt(\"uri=%s\", uri);\n}"
+        }
+      ],
+      "description": "&& requires a nonempty saved URI and a true extension predicate. The block sets ext_hit=T and formats matched_on with fmt(\"uri=%s\", uri). This check runs for every eligible response header. Later header-specific branches fill matched_on only when it is empty, preserving URI context as the preferred description.",
+      "links": [
+        [
+          "extensions",
+          "Accept a listed suffix with an optional query string"
+        ],
+        [
+          "response-mime",
+          "Match Content-Type and preserve URI context"
+        ],
+        [
+          "response-decision",
+          "Require at least one indicator flag"
+        ]
+      ]
+    },
+    {
+      "id": "response-mime",
+      "title": "Match Content-Type and preserve URI context",
+      "ranges": [
+        {
+          "code": "if ( header_name == \"content-type\" && is_suspicious_mime(header_val) )\n{\nmime_hit = T;\nif ( matched_on == \"\" )\nmatched_on = fmt(\"content-type=%s\", value);\n}"
+        }
+      ],
+      "description": "The && condition requires header_name to equal content-type and is_suspicious_mime to accept header_val. The block sets mime_hit=T. When matched_on is empty, fmt stores the original header value in the description. A prior URI description keeps precedence, while the MIME flag independently contributes to the final decision.",
+      "links": [
+        [
+          "mime-broad",
+          "Match binary, text, and batch MIME strings"
+        ],
+        [
+          "mime-script",
+          "Match scripting MIME strings and return a Boolean"
+        ],
+        [
+          "response-disposition",
+          "Search Content-Disposition for a listed filename fragment"
+        ]
+      ]
+    },
+    {
+      "id": "response-disposition",
+      "title": "Search Content-Disposition for a listed filename fragment",
+      "ranges": [
+        {
+          "code": "if ( header_name == \"content-disposition\" )\n{\nif ( /filename\\s*=\\s*\\\"?[^\\\";]+[.](wsf|bat|cmd|ps1|py|js|vbs|url)\\\"?/ in header_val )"
+        }
+      ],
+      "description": "The outer condition selects content-disposition. Its pattern searches the lowercased value for filename, optional whitespace around =, an optional quote, filename text, and a listed extension fragment. The search accepts additional characters after that fragment, so a value such as a.js.txt can match. Extended filename parameters remain in their original encoded form.",
+      "links": [
+        [
+          "disposition-hit",
+          "Set the disposition flag and fill empty match context"
+        ],
+        [
+          "extensions",
+          "Accept a listed suffix with an optional query string"
+        ]
+      ]
+    },
+    {
+      "id": "disposition-hit",
+      "title": "Set the disposition flag and fill empty match context",
+      "ranges": [
+        {
+          "code": "{\ndisp_hit = T;\nif ( matched_on == \"\" )\nmatched_on = fmt(\"content-disposition=%s\", value);\n}\n}"
+        }
+      ],
+      "description": "A successful filename-pattern search enters this block and sets disp_hit=T. If matched_on is empty, fmt records the original Content-Disposition value. An existing URI description keeps precedence. The closing braces finish the pattern and header-name branches; the disposition flag then participates in the final three-way decision.",
+      "links": [
+        [
+          "response-decision",
+          "Require at least one indicator flag"
+        ],
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ]
+      ]
+    },
+    {
+      "id": "response-decision",
+      "title": "Require at least one indicator flag",
+      "ranges": [
+        {
+          "code": "if ( ! ext_hit && ! mime_hit && ! disp_hit )\nreturn;"
+        }
+      ],
+      "description": "! negates each flag, and && joins the three false-flag tests. The handler returns when all three flags are F. Processing continues when URI extension, MIME, or disposition supplies at least one T value. Combined with the earlier live-sequence gate, this condition qualifies the current response-header observation for a notice.",
+      "links": [
+        [
+          "response-method",
+          "Read the saved method and retained seed"
+        ],
+        [
+          "notice",
+          "Submit the hostname and file-indicator finding"
+        ]
+      ]
+    },
+    {
+      "id": "response-method",
+      "title": "Read the saved method and retained seed",
+      "ranges": [
+        {
+          "code": "if ( c?$cf_req_method )\nmethod = to_upper(c$cf_req_method);\nseed = cf_state[orig];"
+        }
+      ],
+      "description": "c?$cf_req_method checks presence before to_upper normalizes the saved method for display. An absent field leaves method as \"\". seed = cf_state[orig] retrieves the observation whose membership and age were checked earlier. The method supplies output context for the latest saved connection request; every method value follows the same notice path.",
+      "links": [
+        [
+          "http-save",
+          "Save the original request URI and method"
+        ],
+        [
+          "notice-context",
+          "Format six values into notice context"
+        ]
+      ]
+    },
+    {
+      "id": "notice",
+      "title": "Submit the hostname and file-indicator finding",
+      "ranges": [
+        {
+          "code": "NOTICE([\n$note=Suspicious_Download_After_Cloudflare_Domain,\n$msg=\"Suspicious download observed after access to Cloudflare developer/tunnel domain\","
+        }
+      ],
+      "description": "NOTICE receives a record initializer whose $note selects Suspicious_Download_After_Cloudflare_Domain. $msg supplies a fixed description of the observed sequence. The call is reached after a retained hostname seed passes the age check and at least one URI, MIME, or disposition indicator matches during a responder HTTP header event.",
+      "links": [
+        [
+          "notice-context",
+          "Format six values into notice context"
+        ],
+        [
+          "suppression",
+          "Build a suppression key from client, hostname, and match"
+        ]
+      ]
+    },
+    {
+      "id": "notice-context",
+      "title": "Format six values into notice context",
+      "ranges": [
+        {
+          "code": "$sub=fmt(\"client=%s seed_host=%s seed_via=%s followon_dest=%s method=%s match=%s\",\norig, seed$host, seed$via, c$id$resp_h, method, matched_on),"
+        }
+      ],
+      "description": "fmt fills six %s placeholders with the client address, seed hostname, seed observation method, current destination, saved request method, and matched_on. seed$host and seed$via read fields from the retained CFState record. This output joins the hostname observation with the current header's indicator through the shared client-address key.",
+      "links": [
+        [
+          "state-record",
+          "Store the hostname observation as a typed record"
+        ],
+        [
+          "response-sequence",
+          "Require recent seed context for the originator address"
+        ],
+        [
+          "notice-endpoints",
+          "Attach current endpoints and connection metadata"
+        ]
+      ]
+    },
+    {
+      "id": "notice-endpoints",
+      "title": "Attach current endpoints and connection metadata",
+      "ranges": [
+        {
+          "code": "$src=orig,\n$dst=c$id$resp_h,\n$p=c$id$resp_p,\n$conn=c,"
+        }
+      ],
+      "description": "$src and $dst record the current originator and responder addresses. $p records the responder port, and $conn=c attaches the current connection to the notice. These fields describe the connection carrying the matching HTTP response header; the earlier hostname observation's destination remains in its CFState record.",
+      "links": [
+        [
+          "notice-context",
+          "Format six values into notice context"
+        ],
+        [
+          "suppression",
+          "Build a suppression key from client, hostname, and match"
+        ]
+      ]
+    },
+    {
+      "id": "suppression",
+      "title": "Build a suppression key from client, hostname, and match",
+      "ranges": [
+        {
+          "code": "$identifier=fmt(\"%s|%s|%s\", orig, seed$host, matched_on),\n$suppress_for=notice_suppress\n]);\n}"
+        }
+      ],
+      "description": "fmt joins orig, seed$host, and matched_on with vertical bars to form $identifier. $suppress_for=notice_suppress sets the framework suppression interval. Repeated findings with the same key share suppression; changed match text produces a different key. The closing ]); completes the notice record and call.",
+      "links": [
+        [
+          "settings",
+          "Set sequence age and notice suppression intervals"
+        ],
+        [
+          "header-inputs",
+          "Declare local values for each response-header event"
+        ],
+        [
+          "response-uri",
+          "Set the URI flag and preferred match description"
+        ]
+      ]
+    }
+  ],
+  "notice": {
+    "msg": [
+      "Suspicious download observed after access to Cloudflare developer/tunnel domain"
+    ],
+    "sub": [
+      "client=",
+      {
+        "token": "%s",
+        "label": "Client IP",
+        "sources": [
+          {
+            "anchor": "orig = c$id$orig_h;",
+            "text": "c$id$orig_h"
+          },
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "orig"
+          }
+        ]
+      },
+      " seed_host=",
+      {
+        "token": "%s",
+        "label": "Seed hostname",
+        "sources": [
+          {
+            "anchor": "cf_state[orig] = [$ts=network_time(), $host=host, $dest_ip=dest, $uid=uid, $via=via];",
+            "text": "$host=host"
+          },
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "seed$host"
+          }
+        ]
+      },
+      " seed_via=",
+      {
+        "token": "%s",
+        "label": "Hostname observation method",
+        "sources": [
+          {
+            "anchor": "cf_state[orig] = [$ts=network_time(), $host=host, $dest_ip=dest, $uid=uid, $via=via];",
+            "text": "$via=via"
+          },
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "seed$via"
+          }
+        ]
+      },
+      " followon_dest=",
+      {
+        "token": "%s",
+        "label": "Follow-on destination",
+        "sources": [
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "c$id$resp_h"
+          }
+        ]
+      },
+      " method=",
+      {
+        "token": "%s",
+        "label": "HTTP request method",
+        "sources": [
+          {
+            "anchor": "method = to_upper(c$cf_req_method);",
+            "text": "to_upper(c$cf_req_method)"
+          },
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "method"
+          }
+        ]
+      },
+      " match=",
+      {
+        "token": "%s",
+        "label": "Matched file context",
+        "sources": [
+          {
+            "anchor": "matched_on = fmt(\"uri=%s\", uri);",
+            "text": "matched_on"
+          },
+          {
+            "anchor": "matched_on = fmt(\"content-type=%s\", value);",
+            "text": "matched_on"
+          },
+          {
+            "anchor": "matched_on = fmt(\"content-disposition=%s\", value);",
+            "text": "matched_on"
+          },
+          {
+            "anchor": "orig, seed$host, seed$via, c$id$resp_h, method, matched_on),",
+            "text": "matched_on"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -2,6 +2,10 @@
 
 This repository is a collection of network detections organized alongside test PCAPs that I created.
 
+## Test with a PCAP first
+
+Start in a subject's capture guide, download a ready PCAP and inspect or replay it. Python generators and automated regression runners are optional reproduction tools. The [PE](pe-disguise/pcap/), [iodine](iodine/), [dnscat2](dnscat2/), [EarthWorm](Earthworm/) and [Modbus](modbus/write%20errors/) guides identify a first capture and its expected Zeek results. Each guide distinguishes captured, derived and synthetic traffic.
+
 In most cases, the PCAPs are minimal but realistic enough to exercise the included detections and the behaviors or IoCs described in recent threat intelligence reporting.
 
 Where useful, links to the original articles or local PDF copies may be included for reference. Those articles are not my work and, when included, are provided for informational purposes only.
@@ -20,6 +24,7 @@ Additional detection packages:
 - [`WMI/`](WMI/): rules for encoded WMI command output and combined recovery inhibition, positive and negative captures, and replay results.
 - [`Certipy/`](Certipy/): certificate authentication packet evidence, including [PKINIT-U2U](Certipy/PKINIT-U2U/). Its maintained detector and replay suite are in [Pb-22/zeek-detections](https://github.com/Pb-22/zeek-detections).
 - [`iodine/`](iodine/): native DNS and Raw UDP tunnel captures, a fragmentation test, and two negative controls with expected Zeek Notice results.
+- [`dnscat2/`](dnscat2/): ready DNS carrier session captures derived from native lab traffic, with documented endpoint replacement and expected Zeek results.
 - [`pe-disguise/`](pe-disguise/): a Zeek detector for PE files advertised as documents or images, with ready test PCAPs and scripts to reproduce and replay them.
 
 ## Pb-22 Open Suricata feed

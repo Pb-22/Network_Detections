@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "path": "pe-disguise/Zeek/pe.zeek",
+  "title": "PE header and completion checks",
+  "description": "Computes the necessary PE header prefix, checks bounded PE32 and PE32+ structure against the declared file length, and requires agreement between HTTP and file completion.",
+  "tags": [
+    "HTTP",
+    "PE",
+    "Content-Disposition"
+  ],
+  "initialTopic": "pe-format-entry",
+  "topics": [
+    {
+      "id": "filename-load",
+      "title": "Load shared byte and filename helpers",
+      "description": "The relative load supplies byte slicing, numeric octets, filename selection and shared limits in the PEFileDisguise module. Main obtains these through its load of pe.",
+      "ranges": [
+        {
+          "code": "@load ./filename"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Open the byte slice definition"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "prefix-budget",
+          "label": "Read the shared prefix limit"
+        }
+      ]
+    },
+    {
+      "id": "pe-format-interface",
+      "title": "Export the PE classification interface",
+      "description": "pe_format accepts retained prefix bytes and the declared object length, returning pe32, pe32plus or an empty result. Its actual definition performs the field and extent checks.",
+      "ranges": [
+        {
+          "code": "global pe_format: function(prefix: string, declared: count): string;"
+        }
+      ],
+      "links": [
+        [
+          "pe-format-entry",
+          "Open the classifier implementation"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-classify",
+          "label": "Return a format to prefix collection"
+        }
+      ]
+    },
+    {
+      "id": "completion-interface",
+      "title": "Export the completion predicate",
+      "description": "completion_ok takes both completion flags, the bad flag and observed, total and declared counts. Its actual definition returns the conjunction consumed by finish in main.",
+      "ranges": [
+        {
+          "code": "global completion_ok: function(http_done: bool, file_done: bool, bad: bool, seen: count, total: count, declared: count): bool;"
+        }
+      ],
+      "links": [
+        [
+          "completion-definition",
+          "Open the completion predicate definition"
+        ]
+      ]
+    },
+    {
+      "id": "little-endian-definition",
+      "title": "Decode an unsigned little endian field",
+      "description": "le selects width bytes at zero based offset with part, then passes T to bytestring_to_count for little endian order. The PE fields read below use this helper, including the four byte DOS pointer and two byte COFF fields.",
+      "ranges": [
+        {
+          "code": "function le(s: string, offset: count, width: count): count\n{ return bytestring_to_count(part(s,offset,width),T); }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Select the integer byte span"
+        },
+        [
+          "needed-nt-offset",
+          "Read the DOS pointer with le"
+        ],
+        [
+          "coff-fields",
+          "Read COFF fields with le"
+        ]
+      ]
+    },
+    {
+      "id": "needed-entry",
+      "title": "Request the DOS header first",
+      "description": "needed returns 64 until the retained prefix contains the fixed DOS header. Main treats the count as the next required prefix extent and copies only enough bytes to reach it.",
+      "ranges": [
+        {
+          "code": "function needed(s: string): count\n{\nif ( |s|<64 ) return 64;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-needed",
+          "label": "Return the next required extent to the cursor"
+        }
+      ]
+    },
+    {
+      "id": "needed-dos-signature",
+      "title": "Require MZ before extending the prefix",
+      "description": "The first two bytes must be MZ. Otherwise needed returns max_prefix_bytes+1, a sentinel that main rejects using its cap guard.",
+      "ranges": [
+        {
+          "code": "if ( part(s,0,2)!=\"MZ\" ) return max_prefix_bytes+1;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Read the DOS signature"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "prefix-budget",
+          "label": "Read the cap used for the sentinel"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-need-bound",
+          "label": "Reject a need beyond the cap"
+        }
+      ]
+    },
+    {
+      "id": "needed-nt-offset",
+      "title": "Bound the DOS pointer and COFF extent",
+      "description": "The four byte little endian e_lfanew field at offset 60 gives nt. A pointer below 64 or a signature plus COFF extent nt+24 above the prefix cap returns the oversized sentinel.",
+      "ranges": [
+        {
+          "code": "local nt=le(s,60,4);\nif ( nt<64 || nt+24>max_prefix_bytes ) return max_prefix_bytes+1;"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode e_lfanew in little endian order"
+        ],
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "prefix-budget",
+          "label": "Read the prefix byte cap"
+        }
+      ]
+    },
+    {
+      "id": "needed-coff-stage",
+      "title": "Request the signature and COFF header",
+      "description": "If the retained prefix has not reached nt+24, needed returns that extent. This lets main collect the fields needed to size the optional header and section table before asking for those later bytes.",
+      "ranges": [
+        {
+          "code": "if ( |s|<nt+24 ) return nt+24;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-needed",
+          "label": "Continue prefix collection to the COFF extent"
+        }
+      ]
+    },
+    {
+      "id": "needed-table-stage",
+      "title": "Request optional header and section entries",
+      "description": "The next extent is nt+24 plus SizeOfOptionalHeader and 40 times NumberOfSections. le reads those two COFF fields at nt+20 and nt+6. Main bounds this requested extent before copying or classifying.",
+      "ranges": [
+        {
+          "code": "return nt+24+le(s,nt+20,2)+40*le(s,nt+6,2);"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode the COFF size fields"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-need-bound",
+          "label": "Check the full requested extent"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-classify",
+          "label": "Classify once the full extent is present"
+        }
+      ]
+    },
+    {
+      "id": "pe-format-entry",
+      "title": "Enter bounded PE classification",
+      "description": "pe_format takes prefix and declared. It first requires a declared length within max_object_bytes, at least 64 retained bytes and an MZ signature. Failure returns an empty result, which main marks as a rejected context.",
+      "ranges": [
+        {
+          "code": "function pe_format(prefix: string, declared: count): string\n{\nif ( declared>max_object_bytes || |prefix|<64 || part(prefix,0,2)!=\"MZ\" ) return \"\";"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "object-budget",
+          "label": "Read the object byte cap"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Read the DOS signature bytes"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-classify",
+          "label": "Use the returned format or empty result"
+        }
+      ]
+    },
+    {
+      "id": "nt-signature",
+      "title": "Require the NT signature within the prefix",
+      "description": "The DOS pointer is decoded at offset 60. nt must be at least 64 and nt+24 must fit the retained prefix; the four bytes at nt must equal PE followed by two NUL bytes.",
+      "ranges": [
+        {
+          "code": "local nt=le(prefix,60,4);\nif ( nt<64 || nt+24>|prefix| || part(prefix,nt,4)!=\"PE\\x00\\x00\" ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode the DOS pointer"
+        ],
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "part-definition",
+          "label": "Read the exact NT signature bytes"
+        }
+      ]
+    },
+    {
+      "id": "coff-fields",
+      "title": "Read machine sections and optional size",
+      "description": "The COFF header supplies Machine at nt+4, NumberOfSections at nt+6 and SizeOfOptionalHeader at nt+20. These little endian fields select the accepted format and locate the section table.",
+      "ranges": [
+        {
+          "code": "local machine=le(prefix,nt+4,2);\nlocal sections=le(prefix,nt+6,2);\nlocal optsize=le(prefix,nt+20,2);"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode the three COFF integers"
+        ]
+      ]
+    },
+    {
+      "id": "section-table-position",
+      "title": "Locate the complete section table extent",
+      "description": "The optional header starts at nt+24. table_end adds its declared size and 40 bytes per section entry, defining the last header byte required for the following structural checks.",
+      "ranges": [
+        {
+          "code": "local opt=nt+24; local table_end=opt+optsize+40*sections;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-table-bound",
+      "title": "Require a bounded nonempty section table",
+      "description": "The section count must be 1 through 96. table_end must fit the prefix cap, the retained byte string and the declared object length. These predicates bound subsequent section field reads against all three extents.",
+      "ranges": [
+        {
+          "code": "if ( sections==0 || sections>max_sections || table_end>max_prefix_bytes || table_end>|prefix| || table_end>declared ) return \"\";"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "section-budget",
+          "label": "Read the section count cap"
+        },
+        {
+          "path": "pe-disguise/Zeek/filename.zeek",
+          "topic": "prefix-budget",
+          "label": "Read the retained prefix cap"
+        }
+      ]
+    },
+    {
+      "id": "optional-magic",
+      "title": "Read the optional header magic",
+      "description": "The two byte magic at opt is decoded with le. fixed and format are assigned by the accepted machine and magic pairs immediately below.",
+      "ranges": [
+        {
+          "code": "local magic=le(prefix,opt,2); local fixed: count; local format: string;"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode optional header magic"
+        ]
+      ]
+    },
+    {
+      "id": "pe32-pair",
+      "title": "Select the i386 PE32 pair",
+      "description": "Machine 0x14c paired with magic 0x10b sets fixed=96 and format=pe32. fixed locates NumberOfRvaAndSizes and the start of data directory entries for this format.",
+      "ranges": [
+        {
+          "code": "if ( machine==0x14c && magic==0x10b ) { fixed=96; format=\"pe32\"; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "pe32plus-pair",
+      "title": "Select the AMD64 or ARM64 PE32+ pair",
+      "description": "Machine 0x8664 or 0xaa64 paired with magic 0x20b sets fixed=112 and format=pe32plus. Main renders the accepted result as PE32+ in the Notice.",
+      "ranges": [
+        {
+          "code": "else if ( (machine==0x8664 || machine==0xaa64) && magic==0x20b ) { fixed=112; format=\"pe32plus\"; }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "notice-format",
+          "label": "Render the classifier result in the Notice"
+        }
+      ]
+    },
+    {
+      "id": "machine-magic-rejection",
+      "title": "Reject other machine and magic pairs",
+      "description": "The else branch returns an empty string unless one of the preceding pairs assigned a format. Machine and magic must agree with a supported pair.",
+      "ranges": [
+        {
+          "code": "else return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "optional-directory-bound",
+      "title": "Fit the advertised directories in the optional header",
+      "description": "optsize must contain fixed bytes plus eight bytes for each advertised directory. The count at opt+fixed-4 must be at most 16. The inequality permits additional optional header padding while requiring all advertised directory entries to fit.",
+      "ranges": [
+        {
+          "code": "if ( optsize<fixed || fixed+8*le(prefix,opt+fixed-4,4)>optsize || le(prefix,opt+fixed-4,4)>16 ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Read NumberOfRvaAndSizes"
+        ]
+      ]
+    },
+    {
+      "id": "headers-fields",
+      "title": "Read SizeOfHeaders and FileAlignment",
+      "description": "le reads SizeOfHeaders at opt+60 and FileAlignment at opt+36. The next guard compares the header extent with the section table and declared object length.",
+      "ranges": [
+        {
+          "code": "local headers=le(prefix,opt+60,4);\nlocal alignment=le(prefix,opt+36,4);"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode header size and file alignment"
+        ]
+      ]
+    },
+    {
+      "id": "headers-bound",
+      "title": "Require an aligned header extent",
+      "description": "SizeOfHeaders must contain table_end and fit declared. FileAlignment must be nonzero, and SizeOfHeaders must be divisible by that alignment. The same alignment constrains nonempty section raw offsets.",
+      "ranges": [
+        {
+          "code": "if ( headers<table_end || headers>declared || alignment==0 || headers%alignment!=0 ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-extents-state",
+      "title": "Track previously accepted raw extents",
+      "description": "starts and ends are parallel vectors of raw file intervals. The loop visits each of the bounded section entries using i, enabling overlap checks against every previously accepted nonempty interval.",
+      "ranges": [
+        {
+          "code": "local ends: vector of count=vector(); local starts: vector of count=vector();\nlocal i: count=0;\nwhile ( i<sections )\n{"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-raw-fields",
+      "title": "Read each section raw file interval",
+      "description": "Each section entry begins at opt+optsize+40*i. le reads SizeOfRawData at entry+16 and PointerToRawData at entry+20. These are byte extents in the declared file.",
+      "ranges": [
+        {
+          "code": "local sec=opt+optsize+40*i;\nlocal size=le(prefix,sec+16,4); local start=le(prefix,sec+20,4);"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode raw section size and offset"
+        ]
+      ]
+    },
+    {
+      "id": "section-nonempty",
+      "title": "Check raw extents for sections with bytes",
+      "description": "Only a positive SizeOfRawData enters the raw extent checks and interval tracking. A zero size section proceeds to the next entry without adding an interval.",
+      "ranges": [
+        {
+          "code": "if ( size>0 )"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-raw-bound",
+      "title": "Fit aligned section bytes after headers",
+      "description": "A nonempty raw section starts at or after SizeOfHeaders and at or before declared. Its size must fit declared-start and its start must be divisible by FileAlignment. The subtraction bounds the end without requiring a read of section contents.",
+      "ranges": [
+        {
+          "code": "if ( start<headers || start>declared || size>declared-start || start%alignment!=0 ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-overlap",
+      "title": "Require disjoint nonempty raw intervals",
+      "description": "For every accepted prior interval, start<ends[j] and start+size>starts[j] identifies overlap. Touching endpoints are accepted, while an actual shared byte interval returns an empty result.",
+      "ranges": [
+        {
+          "code": "for ( j in ends ) if ( start<ends[j] && start+size>starts[j] ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-save-extent",
+      "title": "Remember the accepted interval",
+      "description": "The raw start and exclusive end enter parallel vectors for later comparisons. Every following nonempty section is checked against these intervals.",
+      "ranges": [
+        {
+          "code": "starts+=start; ends+=start+size;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "section-next",
+      "title": "Advance to the next section entry",
+      "description": "Incrementing i visits the next 40 byte entry until the bounded section count is exhausted. Empty sections also take this increment.",
+      "ranges": [
+        {
+          "code": "++i;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "certificate-present",
+      "title": "Check the certificate directory when advertised",
+      "description": "A directory count greater than four includes directory index four. Only then does the classifier read the certificate file offset and size.",
+      "ranges": [
+        {
+          "code": "if ( le(prefix,opt+fixed-4,4)>4 )"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Read the advertised directory count"
+        ]
+      ]
+    },
+    {
+      "id": "certificate-fields",
+      "title": "Read certificate file offset and size",
+      "description": "The two four byte fields at opt+fixed+32 and +36 give the certificate file offset and size. The offset addresses certificate bytes directly in the file.",
+      "ranges": [
+        {
+          "code": "local cert=le(prefix,opt+fixed+32,4); local csize=le(prefix,opt+fixed+36,4);"
+        }
+      ],
+      "links": [
+        [
+          "little-endian-definition",
+          "Decode certificate offset and size"
+        ]
+      ]
+    },
+    {
+      "id": "certificate-bound",
+      "title": "Fit the certificate extent in the declared file",
+      "description": "Certificate offset and size must either both be zero or both be nonzero. The offset must fit declared, and size must fit declared-cert. This is an extent predicate on directory fields.",
+      "ranges": [
+        {
+          "code": "if ( (cert==0)!=(csize==0) || cert>declared || csize>declared-cert ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "pe-format-return",
+      "title": "Return the accepted format",
+      "description": "The surviving format is pe32 or pe32plus and becomes x$format in main. Trailing overlay bytes remain compatible because these structural predicates bound each advertised section and certificate extent within declared while allowing bytes after those extents.",
+      "ranges": [
+        {
+          "code": "return format;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-classify",
+          "label": "Store the returned format and release prefix bytes"
+        }
+      ]
+    },
+    {
+      "id": "completion-definition",
+      "title": "Require both completions and exact byte agreement",
+      "description": "completion_ok returns T only when http_done and file_done are both T, bad is F, and seen and total each equal declared. Main calls this after its own completion gates and combines it with a nonempty format before emitting the Notice.",
+      "ranges": [
+        {
+          "code": "function completion_ok(http_done: bool, file_done: bool, bad: bool, seen: count, total: count, declared: count): bool\n{ return http_done && file_done && ! bad && seen==declared && total==declared; }"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "finish-completion",
+          "label": "Use this boolean with the stored format"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "http-completion-quality",
+          "label": "Supply HTTP completion quality"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "file-completion-quality",
+          "label": "Supply file counts and quality"
+        }
+      ]
+    }
+  ],
+  "notice": {}
+}

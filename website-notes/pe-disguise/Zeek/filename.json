@@ -1,0 +1,1054 @@
+{
+  "schema_version": 1,
+  "path": "pe-disguise/Zeek/filename.zeek",
+  "title": "PE filename selection",
+  "description": "Selects a bounded Content-Disposition filename, with UTF-8 extended parameter precedence, explicit language syntax, duplicate checks and byte level filename restrictions.",
+  "tags": [
+    "HTTP",
+    "PE",
+    "Content-Disposition"
+  ],
+  "initialTopic": "selected-filename-entry",
+  "topics": [
+    {
+      "id": "prefix-budget",
+      "title": "Bound retained PE headers",
+      "description": "max_prefix_bytes limits each retained header prefix to 65536 bytes. needed returns a value beyond this cap for an unusable prefix, and main rejects it before copying more bytes.",
+      "ranges": [
+        {
+          "code": "const max_prefix_bytes: count = 65536;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "needed-dos-signature",
+          "label": "See the oversized need sentinel"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-need-bound",
+          "label": "Apply the prefix cap before copying"
+        }
+      ]
+    },
+    {
+      "id": "context-budget",
+      "title": "Bound active file contexts",
+      "description": "max_active_contexts permits 128 simultaneous admitted contexts. Main checks this count before allocating shared HTTP and file state.",
+      "ranges": [
+        {
+          "code": "const max_active_contexts: count = 128;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "context-admission-cap",
+          "label": "Apply the active context limit"
+        }
+      ]
+    },
+    {
+      "id": "header-budget",
+      "title": "Bound header value bytes",
+      "description": "max_header_value_bytes is 4096. Main checks each response header value, decimal_length bounds the stripped decimal input, and the filename and language parsers use the same byte cap.",
+      "ranges": [
+        {
+          "code": "const max_header_value_bytes: count = 4096;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "header-value-bound",
+          "label": "Bound response header values"
+        },
+        [
+          "selected-filename-entry",
+          "Bound the Content-Disposition input"
+        ],
+        [
+          "language-length",
+          "Bound the language string"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "decimal-input",
+          "label": "Bound decimal length input"
+        }
+      ]
+    },
+    {
+      "id": "filename-budget",
+      "title": "Bound selected name bytes",
+      "description": "max_filename_bytes caps a meaningful filename at 255 bytes. The bound applies to decoded filename* bytes or the selected ordinary filename.",
+      "ranges": [
+        {
+          "code": "const max_filename_bytes: count = 255;"
+        }
+      ],
+      "links": [
+        [
+          "meaningful-entry",
+          "Apply the name byte bound"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-budget",
+      "title": "Bound distinct parameters",
+      "description": "max_parameters permits 16 distinct parameter names. The parser checks the set size before adding the next lowercased key.",
+      "ranges": [
+        {
+          "code": "const max_parameters: count = 16;"
+        }
+      ],
+      "links": [
+        [
+          "parameter-duplicates",
+          "Apply the parameter count limit"
+        ]
+      ]
+    },
+    {
+      "id": "section-budget",
+      "title": "Bound PE section count",
+      "description": "max_sections permits 96 COFF section entries. pe_format checks the count and the complete table extent before reading section fields.",
+      "ranges": [
+        {
+          "code": "const max_sections: count = 96;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "section-table-bound",
+          "label": "Bound the section table"
+        }
+      ]
+    },
+    {
+      "id": "object-budget",
+      "title": "Bound declared object bytes",
+      "description": "max_object_bytes is 268435456 bytes. decimal_length bounds the parsed Content-Length with checked accumulation; pe_format also checks its declared argument against this cap.",
+      "ranges": [
+        {
+          "code": "const max_object_bytes: count = 268435456;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "decimal-overflow",
+          "label": "Bound decimal accumulation"
+        },
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "pe-format-entry",
+          "label": "Check the declared object bound"
+        }
+      ]
+    },
+    {
+      "id": "filename-interface",
+      "title": "Export the filename selector",
+      "description": "The exported function declaration gives selected_filename a string input and string result. The implementation returns the selected name or an empty string that prevents admission in main.",
+      "ranges": [
+        {
+          "code": "global selected_filename: function(value: string): string;"
+        }
+      ],
+      "links": [
+        [
+          "selected-filename-entry",
+          "Open the actual filename parser definition"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "header-filename",
+          "label": "Send the header value to the selector"
+        }
+      ]
+    },
+    {
+      "id": "octet-definition",
+      "title": "Read one byte as a count",
+      "description": "octet translates a zero based index i to sub_bytes offset i+1, reads one byte and converts that byte string to a count. UTF-8 checks, filename byte restrictions and decimal parsing use this numeric byte value.",
+      "ranges": [
+        {
+          "code": "function octet(s: string, i: count): count\n{ return bytestring_to_count(sub_bytes(s, i+1, 1)); }"
+        }
+      ],
+      "links": [
+        [
+          "utf8-byte",
+          "Use numeric bytes for UTF-8 classes"
+        ],
+        [
+          "meaningful-bytes",
+          "Use numeric bytes for filename restrictions"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "decimal-digit",
+          "label": "Use a numeric byte as a decimal digit"
+        }
+      ]
+    },
+    {
+      "id": "part-definition",
+      "title": "Select bytes at a zero based offset",
+      "description": "part translates offset i to the one based sub_bytes interface and requests n bytes. Filename parsing uses it for characters and spans; PE helpers use it for signatures and integer fields.",
+      "ranges": [
+        {
+          "code": "function part(s: string, i: count, n: count): string\n{ return sub_bytes(s, i+1, n); }"
+        }
+      ],
+      "links": [
+        [
+          "disposition-token",
+          "Extract the disposition token"
+        ],
+        {
+          "path": "pe-disguise/Zeek/pe.zeek",
+          "topic": "little-endian-definition",
+          "label": "Pass a selected byte span into integer decoding"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "prefix-copy",
+          "label": "Copy only the current required prefix span"
+        }
+      ]
+    },
+    {
+      "id": "token-definition",
+      "title": "Recognize an HTTP token byte",
+      "description": "The anchored character class accepts exactly one HTTP token character, including ASCII letters, digits and the listed punctuation. Disposition, parameter keys and unquoted values advance only through bytes accepted here.",
+      "ranges": [
+        {
+          "code": "function token(c: string): bool\n{ return /^[!#$%&'*+.^_`|~0-9A-Za-z-]$/ == c; }"
+        }
+      ],
+      "links": [
+        [
+          "disposition-token",
+          "Consume disposition token bytes"
+        ],
+        [
+          "parameter-key",
+          "Consume parameter key bytes"
+        ],
+        [
+          "parameter-token-value",
+          "Consume unquoted value bytes"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-entry",
+      "title": "Walk the candidate UTF-8 bytes",
+      "description": "utf8_ok starts at byte zero and advances through the complete byte string. It is called on decoded extended names and, after extended selection, on the ordinary fallback.",
+      "ranges": [
+        {
+          "code": "function utf8_ok(s: string): bool\n{\nlocal i: count = 0;\nwhile ( i < |s| )\n{"
+        }
+      ],
+      "links": [
+        [
+          "extended-byte-checks",
+          "Validate decoded extended bytes"
+        ],
+        [
+          "plain-utf8",
+          "Validate selected ordinary bytes"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-byte",
+      "title": "Accept a single ASCII byte",
+      "description": "octet reads the next numeric byte and i advances once. Bytes below 128 need no continuation and move directly to the next character.",
+      "ranges": [
+        {
+          "code": "local b=octet(s,i); ++i;\nif ( b < 128 ) next;"
+        }
+      ],
+      "links": [
+        [
+          "octet-definition",
+          "Read the numeric byte"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-continuation-default",
+      "title": "Set the normal continuation range",
+      "description": "Continuation bytes normally range from 128 through 191. n will hold how many continuation bytes follow the leading byte; lo and hi constrain the first continuation.",
+      "ranges": [
+        {
+          "code": "local n: count; local lo: count=128; local hi: count=191;"
+        }
+      ],
+      "links": [
+        [
+          "utf8-first-continuation",
+          "Apply the first continuation bounds"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-two-byte",
+      "title": "Accept a two byte leading class",
+      "description": "Leading bytes 194 through 223 require one continuation. Starting at 194 excludes the C0 and C1 leads that would encode an ASCII value with an overlong representation.",
+      "ranges": [
+        {
+          "code": "if ( b >= 194 && b <= 223 ) n=1;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "utf8-three-byte",
+      "title": "Constrain three byte sequences",
+      "description": "Leading bytes 224 through 239 require two continuations. E0 raises the first continuation minimum to 160 to exclude overlong encodings; ED lowers its maximum to 159 to exclude surrogate code points.",
+      "ranges": [
+        {
+          "code": "else if ( b >= 224 && b <= 239 )\n{ n=2; if ( b==224 ) lo=160; if ( b==237 ) hi=159; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "utf8-four-byte",
+      "title": "Constrain four byte sequences",
+      "description": "Leading bytes 240 through 244 require three continuations. F0 raises the first continuation minimum to 144 and F4 lowers its maximum to 143, keeping the represented value from U+10000 through U+10FFFF.",
+      "ranges": [
+        {
+          "code": "else if ( b >= 240 && b <= 244 )\n{ n=3; if ( b==240 ) lo=144; if ( b==244 ) hi=143; }"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "utf8-invalid-lead",
+      "title": "Reject other leading bytes",
+      "description": "A byte outside ASCII and the accepted multibyte leading classes returns F. This includes a continuation byte in leading position and lead bytes above F4.",
+      "ranges": [
+        {
+          "code": "else return F;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "utf8-first-continuation",
+      "title": "Require the first continuation in bounds",
+      "description": "The remaining byte count must contain all n continuations. octet at i must satisfy the first continuation range selected for this lead, then i advances.",
+      "ranges": [
+        {
+          "code": "if ( i+n > |s| || octet(s,i)<lo || octet(s,i)>hi ) return F;\n++i;"
+        }
+      ],
+      "links": [
+        [
+          "octet-definition",
+          "Read the first continuation byte"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-later-continuations",
+      "title": "Require every later continuation",
+      "description": "While more than one continuation remains, each following byte must be 128 through 191. Each accepted byte advances i and reduces n.",
+      "ranges": [
+        {
+          "code": "while ( n>1 )\n{ if ( octet(s,i)<128 || octet(s,i)>191 ) return F; ++i; --n; }"
+        }
+      ],
+      "links": [
+        [
+          "octet-definition",
+          "Read later continuation bytes"
+        ]
+      ]
+    },
+    {
+      "id": "utf8-success",
+      "title": "Return complete byte validation",
+      "description": "T means the loop consumed the entire candidate with accepted ASCII bytes or valid bounded continuation sequences. The caller uses this boolean to decide whether the name can be selected.",
+      "ranges": [
+        {
+          "code": "return T;",
+          "before": "{ if ( octet(s,i)<128 || octet(s,i)>191 ) return F; ++i; --n; }\n}"
+        }
+      ],
+      "links": [
+        [
+          "extended-byte-checks",
+          "Use UTF-8 validity for filename*"
+        ],
+        [
+          "plain-utf8",
+          "Use UTF-8 validity for the ordinary name"
+        ]
+      ]
+    },
+    {
+      "id": "meaningful-entry",
+      "title": "Require a bounded basename",
+      "description": "meaningful requires 1 through 255 bytes and rejects a leading or trailing ASCII space or dot. The selected value therefore has a nonempty bounded basename with explicit edge restrictions.",
+      "ranges": [
+        {
+          "code": "function meaningful(s: string): bool\n{\nif ( |s|==0 || |s|>max_filename_bytes || /^[ .]|[ .]$/ in s ) return F;"
+        }
+      ],
+      "links": [
+        [
+          "filename-budget",
+          "Read the filename byte cap"
+        ],
+        [
+          "extended-byte-checks",
+          "Apply to decoded filename*"
+        ],
+        [
+          "plain-meaningful",
+          "Apply to the selected ordinary name"
+        ]
+      ]
+    },
+    {
+      "id": "meaningful-byte-loop",
+      "title": "Inspect every filename byte",
+      "description": "The loop reads each byte numerically through octet, incrementing i once per byte. It checks the byte representation passed in, including bytes produced by URI unescaping.",
+      "ranges": [
+        {
+          "code": "local i: count=0;\nwhile ( i<|s| )\n{\nlocal b=octet(s,i); ++i;"
+        }
+      ],
+      "links": [
+        [
+          "octet-definition",
+          "Read each filename byte"
+        ]
+      ]
+    },
+    {
+      "id": "meaningful-bytes",
+      "title": "Exclude controls and path separators",
+      "description": "The byte predicate rejects C0 controls below 32, DEL 127, slash 47, backslash 92 and colon 58. These checks keep selected names from carrying these path and control bytes.",
+      "ranges": [
+        {
+          "code": "if ( b<32 || b==127 || b==47 || b==92 || b==58 ) return F;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "meaningful-success",
+      "title": "Return accepted basename restrictions",
+      "description": "T reports that every byte and the edge and length checks passed. UTF-8 validity is checked separately by the caller before a selected name reaches main.",
+      "ranges": [
+        {
+          "code": "return T;",
+          "before": "if ( b<32 || b==127 || b==47 || b==92 || b==58 ) return F;\n}"
+        }
+      ],
+      "links": [
+        [
+          "extended-byte-checks",
+          "Combine byte restrictions with extended UTF-8"
+        ],
+        [
+          "plain-utf8",
+          "Combine byte restrictions with ordinary UTF-8"
+        ]
+      ]
+    },
+    {
+      "id": "language-entry",
+      "title": "Accept an absent RFC8187 language",
+      "description": "language_ok immediately accepts an empty language component. selected_filename extracts this optional component between the two apostrophes in the UTF-8 extended value.",
+      "ranges": [
+        {
+          "code": "function language_ok(language: string): bool\n{\nif ( language==\"\" ) return T;"
+        }
+      ],
+      "links": [
+        [
+          "extended-language",
+          "Pass the extracted language into this definition"
+        ]
+      ]
+    },
+    {
+      "id": "language-length",
+      "title": "Bound and lowercase the language",
+      "description": "The shared header cap bounds language byte length. to_lower produces tag for case insensitive grammar, grandfathered membership and duplicate checks.",
+      "ranges": [
+        {
+          "code": "if ( |language|>max_header_value_bytes ) return F;\nlocal tag=to_lower(language);"
+        }
+      ],
+      "links": [
+        [
+          "header-budget",
+          "Read the shared header cap"
+        ]
+      ]
+    },
+    {
+      "id": "language-grandfathered-set",
+      "title": "List the grandfathered language forms",
+      "description": "The explicit set contains the RFC5646 grandfathered forms, including en-gb-oed, the listed i and sgn forms, and the listed art, cel, no and zh forms. Membership is tested after lowercasing, so spelling case does not change selection.",
+      "ranges": [
+        {
+          "code": "local grandfathered: set[string]={\n\"en-gb-oed\", \"i-ami\", \"i-bnn\", \"i-default\", \"i-enochian\",\n\"i-hak\", \"i-klingon\", \"i-lux\", \"i-mingo\", \"i-navajo\", \"i-pwn\",\n\"i-tao\", \"i-tay\", \"i-tsu\", \"sgn-be-fr\", \"sgn-be-nl\", \"sgn-ch-de\",\n\"art-lojban\", \"cel-gaulish\", \"no-bok\", \"no-nyn\", \"zh-guoyu\",\n\"zh-hakka\", \"zh-min\", \"zh-min-nan\", \"zh-xiang\"\n};"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-grandfathered",
+      "title": "Accept a listed grandfathered tag",
+      "description": "A lowercased tag in grandfathered returns T before the general grammar. These explicit legacy forms therefore have a defined acceptance path.",
+      "ranges": [
+        {
+          "code": "if ( tag in grandfathered ) return T;"
+        }
+      ],
+      "links": [
+        [
+          "language-grandfathered-set",
+          "Read the exact accepted legacy set"
+        ]
+      ]
+    },
+    {
+      "id": "language-private-use",
+      "title": "Accept a private use language form",
+      "description": "The anchored pattern accepts x followed by one or more subtags, each containing 1 through 8 ASCII letters or digits. A bare x has no following subtag and fails this pattern.",
+      "ranges": [
+        {
+          "code": "if ( /^x(-[a-z0-9]{1,8})+$/ == tag ) return T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-grammar",
+      "title": "Require the language tag grammar",
+      "description": "The anchored grammar accepts a two or three letter primary with up to three three letter extlangs, or a four through eight letter primary. An optional four letter script and two letter or three digit region precede variants of five through eight alphanumerics, or a digit plus three alphanumerics. Each extension has a digit or letter singleton other than x and one or more two through eight character alphanumeric subtags. An optional final x group contains one or more one through eight character private use subtags.",
+      "ranges": [
+        {
+          "code": "if ( ! ( /^([a-z]{2,3}(-[a-z]{3}){0,3}|[a-z]{4}|[a-z]{5,8})(-[a-z]{4})?(-([a-z]{2}|[0-9]{3}))?(-([a-z0-9]{5,8}|[0-9][a-z0-9]{3}))*(-[0-9a-wy-z](-[a-z0-9]{2,8})+)*(-x(-[a-z0-9]{1,8})+)?$/ == tag ) ) return F;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-subtags",
+      "title": "Advance past language script and region",
+      "description": "After the whole tag matches the grammar, splitting on hyphens lets the duplicate checks locate later fields. The cursor skips the primary, permitted extlangs, an optional four letter script and an optional two letter or three digit region.",
+      "ranges": [
+        {
+          "code": "local subtags=split_string(tag,/-/);\nlocal i: count=1;\nif ( |subtags[0]|<=3 )\nwhile ( i<|subtags| && i<=3 && /^[a-z]{3}$/ == subtags[i] ) ++i;\nif ( i<|subtags| && /^[a-z]{4}$/ == subtags[i] ) ++i;\nif ( i<|subtags| && /^([a-z]{2}|[0-9]{3})$/ == subtags[i] ) ++i;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-variant-set",
+      "title": "Track variant subtags",
+      "description": "A fresh variants set records the lowercased variants. The loop recognizes the same variant forms used in the full grammar before moving to extension singletons.",
+      "ranges": [
+        {
+          "code": "local variants: set[string]=set();\nwhile ( i<|subtags| && /^([a-z0-9]{5,8}|[0-9][a-z0-9]{3})$/ == subtags[i] )"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-variant-duplicate",
+      "title": "Require distinct variant subtags",
+      "description": "A repeated variant returns F. Each first occurrence is added to the set and advances the subtag cursor, making case variations of one variant count as a duplicate.",
+      "ranges": [
+        {
+          "code": "if ( subtags[i] in variants ) return F;\nadd variants[subtags[i]]; ++i;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-extension-set",
+      "title": "Track extension singleton keys",
+      "description": "The singleton set is separate from variants. The remaining subtag loop visits extension singleton keys and the optional final private use marker.",
+      "ranges": [
+        {
+          "code": "local singletons: set[string]=set();\nwhile ( i<|subtags| )"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-private-tail",
+      "title": "Finish at the private use tail",
+      "description": "When the current subtag is x, the already matched private use tail permits an immediate T. Private use contents are outside the extension singleton duplicate set.",
+      "ranges": [
+        {
+          "code": "if ( subtags[i]==\"x\" ) return T;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-extension-duplicate",
+      "title": "Require distinct extension keys",
+      "description": "A repeated singleton returns F. Each accepted key enters singletons; the cursor then skips its subtags until the next one character key, whose uniqueness is checked on the next iteration.",
+      "ranges": [
+        {
+          "code": "if ( subtags[i] in singletons ) return F;\nadd singletons[subtags[i]]; ++i;\nwhile ( i<|subtags| && |subtags[i]|>1 ) ++i;"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "language-success",
+      "title": "Return accepted language syntax",
+      "description": "T reaches the extended filename parser after grammar and duplicate checks complete. The language component qualifies the parameter syntax; the selected filename remains the decoded encoded component.",
+      "ranges": [
+        {
+          "code": "return T;",
+          "before": "while ( i<|subtags| && |subtags[i]|>1 ) ++i;\n}"
+        }
+      ],
+      "links": [
+        [
+          "extended-language",
+          "Resume extended parameter decoding"
+        ]
+      ]
+    },
+    {
+      "id": "selected-filename-entry",
+      "title": "Enter bounded filename selection",
+      "description": "selected_filename accepts the complete Content-Disposition value and returns an empty string for an empty value or one above 4096 bytes. Main stores the returned string as the advertised filename and requires it to be nonempty for file admission.",
+      "ranges": [
+        {
+          "code": "function selected_filename(value: string): string\n{\nif ( |value|==0 || |value|>max_header_value_bytes ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "header-budget",
+          "Read the input cap"
+        ],
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "header-filename",
+          "label": "Return the selected name to response header state"
+        }
+      ]
+    },
+    {
+      "id": "disposition-space",
+      "title": "Skip leading header whitespace",
+      "description": "The parser initializes a zero based byte cursor, skips ASCII space and tab, and marks start for the disposition token.",
+      "ranges": [
+        {
+          "code": "local i: count=0; local start: count;\nwhile ( i<|value| && /[ \\t]/ == part(value,i,1) ) ++i;\nstart=i;"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read whitespace using zero based byte slices"
+        ]
+      ]
+    },
+    {
+      "id": "disposition-token",
+      "title": "Read and lowercase the disposition",
+      "description": "token(part(value,i,1)) advances through HTTP token bytes. part extracts that span and to_lower supplies the disposition used by the following admission guard.",
+      "ranges": [
+        {
+          "code": "while ( i<|value| && token(part(value,i,1)) ) ++i;\nlocal disposition=to_lower(part(value,start,i-start));"
+        }
+      ],
+      "links": [
+        [
+          "token-definition",
+          "Recognize one token byte"
+        ],
+        [
+          "part-definition",
+          "Extract disposition bytes"
+        ]
+      ]
+    },
+    {
+      "id": "disposition-guard",
+      "title": "Select attachment or inline",
+      "description": "Only attachment and inline dispositions proceed to parameter selection. Any other token or an empty token returns an empty result.",
+      "ranges": [
+        {
+          "code": "if ( disposition!=\"attachment\" && disposition!=\"inline\" ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "parameter-state",
+      "title": "Keep distinct keys and candidate names",
+      "description": "params records every lowercased parameter key, including unrecognized keys. plain and extended start empty and retain the ordinary and RFC8187 filename candidates while the entire parameter list is parsed.",
+      "ranges": [
+        {
+          "code": "local params: set[string]=set(); local plain=\"\"; local extended=\"\";\nwhile ( i<|value| )"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "parameter-separator",
+      "title": "Require semicolons between parameters",
+      "description": "Space and tab are skipped at each list boundary. Reaching the end finishes the list; otherwise a semicolon is required, followed by optional space or tab before the next key.",
+      "ranges": [
+        {
+          "code": "while ( i<|value| && /[ \\t]/ == part(value,i,1) ) ++i;\nif ( i==|value| ) break;\nif ( part(value,i,1)!=\";\" ) return \"\";\n++i;\nwhile ( i<|value| && /[ \\t]/ == part(value,i,1) ) ++i;"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read parameter separator bytes"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-key",
+      "title": "Require a token parameter key",
+      "description": "The key starts at the current cursor and consumes token bytes. An empty key returns an empty selection. Lowercasing makes later duplicate and filename comparisons case insensitive.",
+      "ranges": [
+        {
+          "code": "start=i;\nwhile ( i<|value| && token(part(value,i,1)) ) ++i;\nif ( i==start ) return \"\";\nlocal key=to_lower(part(value,start,i-start));"
+        }
+      ],
+      "links": [
+        [
+          "token-definition",
+          "Recognize parameter key bytes"
+        ],
+        [
+          "part-definition",
+          "Extract the complete parameter key"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-continuations",
+      "title": "Admit only the exact filename* key",
+      "description": "A key beginning filename* is accepted only when it equals filename*. This excludes numbered or other suffixed continuation forms from the supported extended parameter grammar.",
+      "ranges": [
+        {
+          "code": "if ( /^filename\\*/ in key && key!=\"filename*\" ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "parameter-duplicates",
+      "title": "Bound and deduplicate all keys",
+      "description": "An already present key or a seventeenth distinct key returns an empty selection. The accepted key enters params before its value is parsed, so duplicates of ordinary, extended and unrecognized parameters all affect admission.",
+      "ranges": [
+        {
+          "code": "if ( key in params || |params|>=max_parameters ) return \"\";\nadd params[key];"
+        }
+      ],
+      "links": [
+        [
+          "parameter-budget",
+          "Read the parameter cap"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-equals",
+      "title": "Require an equals sign and initialize the value",
+      "description": "Space and tab may surround the required equals sign. v starts empty and quoted starts F for each parameter. These flags later distinguish an ordinary quoted string from an extended value, which must be unquoted.",
+      "ranges": [
+        {
+          "code": "while ( i<|value| && /[ \\t]/ == part(value,i,1) ) ++i;\nif ( i==|value| || part(value,i,1)!=\"=\" ) return \"\";\n++i;\nwhile ( i<|value| && /[ \\t]/ == part(value,i,1) ) ++i;\nlocal v=\"\"; local quoted=F;"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read equals and whitespace bytes"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-quoted-entry",
+      "title": "Enter a quoted parameter value",
+      "description": "An opening double quote sets quoted, consumes the quote and starts a byte loop with closed=F. A closing double quote must be seen for this form to complete.",
+      "ranges": [
+        {
+          "code": "if ( i<|value| && part(value,i,1)==\"\\\"\" )\n{\nquoted=T; ++i; local closed=F;\nwhile ( i<|value| )\n{"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read the quote byte"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-quoted-byte",
+      "title": "Close at an unescaped double quote",
+      "description": "Each byte is read and consumed. An unescaped double quote sets closed=T and exits the loop; it is not appended to the stored value.",
+      "ranges": [
+        {
+          "code": "local c=part(value,i,1); ++i;\nif ( c==\"\\\"\" ) { closed=T; break; }"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read each quoted value byte"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-quoted-pair",
+      "title": "Consume a quoted pair",
+      "description": "A backslash requires one following byte and replaces c with that byte. A trailing backslash returns an empty selection. The following control check and append apply to the unescaped byte.",
+      "ranges": [
+        {
+          "code": "if ( c==\"\\\\\" )\n{ if ( i==|value| ) return \"\"; c=part(value,i,1); ++i; }"
+        }
+      ],
+      "links": [
+        [
+          "part-definition",
+          "Read the escaped byte"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-quoted-controls",
+      "title": "Check and append quoted bytes",
+      "description": "The quoted string path excludes NUL through backspace, LF through unit separator and DEL, while allowing horizontal tab at this syntax step. Accepted bytes are appended to v; selected filename restrictions later reject tab too.",
+      "ranges": [
+        {
+          "code": "if ( /[\\x00-\\x08\\x0a-\\x1f\\x7f]/ in c ) return \"\";\nv=cat(v,c);"
+        }
+      ],
+      "links": [
+        [
+          "meaningful-bytes",
+          "Apply selected name control restrictions"
+        ]
+      ]
+    },
+    {
+      "id": "parameter-quoted-close",
+      "title": "Require a closing quote",
+      "description": "Exhausting the input before closed becomes T returns an empty selection. A complete quoted value resumes parsing at the byte after the closing quote.",
+      "ranges": [
+        {
+          "code": "if ( ! closed ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "parameter-token-value",
+      "title": "Read a nonempty unquoted token value",
+      "description": "The unquoted path consumes HTTP token bytes, rejects an empty span and assigns the complete span to v. The next list iteration requires only whitespace, end of input or a semicolon after this span.",
+      "ranges": [
+        {
+          "code": "else\n{\nstart=i;\nwhile ( i<|value| && token(part(value,i,1)) ) ++i;\nif ( i==start ) return \"\";\nv=part(value,start,i-start);"
+        }
+      ],
+      "links": [
+        [
+          "token-definition",
+          "Recognize unquoted value bytes"
+        ],
+        [
+          "part-definition",
+          "Extract unquoted value bytes"
+        ]
+      ]
+    },
+    {
+      "id": "plain-candidate",
+      "title": "Retain the ordinary filename candidate",
+      "description": "The filename parameter assigns its parsed value to plain. Final selection first checks whether filename* was present, so this ordinary candidate is used only when no extended parameter was supplied.",
+      "ranges": [
+        {
+          "code": "if ( key==\"filename\" ) plain=v;"
+        }
+      ],
+      "links": [
+        [
+          "extended-selection",
+          "Apply extended selection precedence"
+        ],
+        [
+          "plain-meaningful",
+          "Check a selected ordinary name"
+        ]
+      ]
+    },
+    {
+      "id": "extended-entry",
+      "title": "Require the UTF-8 extended value form",
+      "description": "filename* enters a separate branch. It must be unquoted and begin with case insensitive UTF-8, an apostrophe, an optional language containing ASCII letters, digits or hyphens, and another apostrophe. Later checks validate the complete encoded component.",
+      "ranges": [
+        {
+          "code": "else if ( key==\"filename*\" )\n{\nif ( quoted || ! ( /^[uU][tT][fF]-8'[A-Za-z0-9-]*'/ in v ) ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "extended-language",
+      "title": "Validate the extracted language component",
+      "description": "The nested substitutions select the language between the first and second apostrophes. language_ok must return T; F returns an empty filename selection before decoding the name.",
+      "ranges": [
+        {
+          "code": "local language=sub(sub(v,/^[^']*'/,\"\"),/'.*$/,\"\");\nif ( ! language_ok(language) ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "language-entry",
+          "Pass the language into its actual validator definition"
+        ]
+      ]
+    },
+    {
+      "id": "extended-encoded",
+      "title": "Require attr-char bytes or complete escapes",
+      "description": "Removing the charset and language prefix yields encoded. Its anchored grammar accepts only RFC8187 attr-char bytes and percent escapes with two hexadecimal digits, so incomplete escapes and raw bytes outside that alphabet return an empty selection.",
+      "ranges": [
+        {
+          "code": "local encoded=sub(v,/^[^']*'[^']*'/,\"\");\n# Reject malformed escapes and bytes outside RFC8187 attr-char.\nif ( ! ( /^([A-Za-z0-9!#$&+.^_`|~-]|%[A-Fa-f0-9]{2})*$/ == encoded ) ) return \"\";"
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "extended-decode",
+      "title": "Decode the extended name bytes",
+      "description": "unescape_URI converts the validated percent escapes into extended bytes. The next checks operate on that decoded byte string, including any encoded separators or controls.",
+      "ranges": [
+        {
+          "code": "extended=unescape_URI(encoded);"
+        }
+      ],
+      "links": [
+        [
+          "extended-byte-checks",
+          "Check the decoded filename bytes"
+        ]
+      ]
+    },
+    {
+      "id": "extended-byte-checks",
+      "title": "Require valid UTF-8 and meaningful decoded bytes",
+      "description": "utf8_ok and meaningful must both accept extended. Either failure returns an empty selection, including when an ordinary filename parameter was also supplied.",
+      "ranges": [
+        {
+          "code": "if ( ! utf8_ok(extended) || ! meaningful(extended) ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "utf8-entry",
+          "Validate decoded UTF-8 at the helper definition"
+        ],
+        [
+          "meaningful-entry",
+          "Check decoded name length edges and path bytes"
+        ]
+      ]
+    },
+    {
+      "id": "extended-selection",
+      "title": "Return filename* before examining the fallback",
+      "description": "Presence of filename* returns the validated extended value immediately. This happens before meaningful(plain) and utf8_ok(plain), so a valid extended name wins even when an ignored ordinary fallback has unsafe or unsupported bytes.",
+      "ranges": [
+        {
+          "code": "if ( \"filename*\" in params ) return extended;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "header-filename",
+          "label": "Store the selected extended name in main"
+        }
+      ]
+    },
+    {
+      "id": "plain-meaningful",
+      "title": "Check the ordinary name when it is selected",
+      "description": "When filename* is absent and filename exists, meaningful must accept plain. An unsafe ordinary name therefore returns empty only on the ordinary selection path.",
+      "ranges": [
+        {
+          "code": "if ( \"filename\" in params && ! meaningful(plain) ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "meaningful-entry",
+          "Validate the selected ordinary basename"
+        ]
+      ]
+    },
+    {
+      "id": "plain-utf8",
+      "title": "Validate the selected ordinary byte encoding",
+      "description": "The final ordinary selection path requires utf8_ok(plain). This accepts UTF-8 ordinary bytes and runs only after extended precedence has already returned.",
+      "ranges": [
+        {
+          "code": "if ( ! utf8_ok(plain) ) return \"\";"
+        }
+      ],
+      "links": [
+        [
+          "utf8-entry",
+          "Validate ordinary UTF-8 at the helper definition"
+        ]
+      ]
+    },
+    {
+      "id": "plain-return",
+      "title": "Return the ordinary selection",
+      "description": "plain becomes the selected name when no filename* was supplied and the ordinary checks passed. If neither name was supplied, plain remains empty and main declines file admission.",
+      "ranges": [
+        {
+          "code": "return plain;"
+        }
+      ],
+      "links": [
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "header-filename",
+          "label": "Return ordinary name bytes to main"
+        },
+        {
+          "path": "pe-disguise/Zeek/main.zeek",
+          "topic": "file-header-admission",
+          "label": "Use the nonempty selected name for admission"
+        }
+      ]
+    }
+  ],
+  "notice": {}
+}
