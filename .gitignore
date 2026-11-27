@@ -14,3 +14,6 @@ __pycache__/
 /Certipy/PKINIT-U2U/replay-results/
 /Certipy/pkinit-u2u-replay*/
 /iodine-replay/
+/pe-disguise-replay/
+/pe-disguise-test-output/
+/pe-disguise-benchmark-output/

@@ -1,0 +1,10 @@
+# Generated fixtures and raw test/benchmark output remain local.
+/test-output/
+/benchmark-output/
+/out/
+*.pcap
+*.pcapng
+*.bin
+*.log
+__pycache__/
+*.pyc
